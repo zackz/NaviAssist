@@ -16,9 +16,9 @@ def compile(src):
         ver = re.findall(r'\$VERSION\s*=\s*"(.*?)"', f.read(), re.I)[0]
 
     # Exe name
-    out = src + '.%s.exe' % ver
+    out = src + '-%s.exe' % ver
     if src.lower().endswith('.au3'):
-        out = src[:-4] + '.%s.exe' % ver
+        out = src[:-4] + '-%s.exe' % ver
         
     # Compile
     print 'Compiling %s ......' % src
