@@ -49,10 +49,16 @@ Global $g_wListProcOld
 Global $g_idTrayQuit
 Global $g_iLastTouchTime = 0
 Global $g_hOwnedFF
-Global $g_NaviData[$NAVI_MAX + 1]
-Global $g_NaviCurrent
 Global $g_AutoQuit = False
 Global $g_bitsDebugOutput ; 0: no output, 1: console, 2: OutputDebugString
+
+; $g_NaviData[0], length
+; $g_NaviData[N], navi defined in cfg
+; $g_NaviData[$NAVI_MAX], navi from command line
+Global $g_NaviData[$NAVI_MAX + 2]
+Global $g_NaviCurrent
+Global $g_NaviTmp_Data
+Global $g_NaviTmp_CMD
 
 main()
 
@@ -107,18 +113,21 @@ Func InitCFG()
 		For $i = 1 To $NAVI_MAX
 			If Not IsNaviKeyExist($i) Then ContinueLoop
 			HotKeySet(GetNaviValue($i, $CFGKEY_NAVI_HOTKEY), "HotKey_Navi")
+			$g_NaviCurrent = $i
 		Next
 		$g_NaviData[0] = $i - 1
 	ElseIf $CmdLine[0] = 2 Then
-		; Command line, redirect index 1 to command line, see GetNaviValue
+		; Command line, redirect index $NAVI_MAX to command line, see GetNaviValue
 		; And no hotkey/tray in command line mode
 		$g_NaviData[0] = 1
+		$g_NaviCurrent = $NAVI_MAX
 		$g_AutoQuit = True
+		$g_NaviTmp_Data = $CmdLine[1]
+		$g_NaviTmp_CMD = $CmdLine[2]
 		dbg("Command line", $CmdLine[0], $CmdLineRaw)
 	Else
 		dbg("Error command line", $CmdLine[0], $CmdLineRaw)
 	EndIf
-	$g_NaviCurrent = 1
 	dbg("InitCFG - 2 Time:", _Timer_Diff($t))
 EndFunc
 
@@ -127,16 +136,16 @@ Func GetNaviKey($index, $key)
 EndFunc
 
 Func GetNaviValue($index, $key)
-	If $CmdLine[0] = 0 Then
-		Return CFGGet(GetNaviKey($index, $key))
-	Else
+	If $g_NaviCurrent = $NAVI_MAX Then
 		If Not($key <> $CFGKEY_NAVI_DATA) Then
-			Return $CmdLine[1]
+			Return $g_NaviTmp_Data
 		ElseIf Not($key <> $CFGKEY_NAVI_HOTKEY) Then
 			Return ""
 		ElseIf Not($key <> $CFGKEY_NAVI_CMD) Then
-			Return $CmdLine[2]
+			Return $g_NaviTmp_CMD
 		EndIf
+	Else
+		Return CFGGet(GetNaviKey($index, $key))
 	EndIf
 EndFunc
 
