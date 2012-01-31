@@ -13,7 +13,7 @@
 #include <GuiListView.au3>
 #include <ListViewConstants.au3>
 
-#include <CFG.au3>
+#include <cfgmgr.au3>
 
 Global Const $NAME = "NaviAssist"
 Global Const $VERSION = "0.2.0"
