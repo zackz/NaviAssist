@@ -9,30 +9,30 @@ A handy and tiny configuration management tool. Extracted from PuTTYAssist.au3
   cause more time
 
 Init:
-    Global Const $PATH_INI     = @ScriptDir & "\" & "properties.ini"
-    Global Const $SECTION_NAME = "PROPERTIES"
-    Global Const $CFGKEY_WIDTH = "WIDTH"
-    Func InitCFG()
-        CFGInitData($PATH_INI, $SECTION_NAME)
-        CFGSetDefault($CFGKEY_WIDTH, 600)
-        ...
-    EndFunc
+	Global Const $PATH_INI     = @ScriptDir & "\" & "properties.ini"
+	Global Const $SECTION_NAME = "PROPERTIES"
+	Global Const $CFGKEY_WIDTH = "WIDTH"
+	Func InitCFG()
+		CFGInitData($PATH_INI, $SECTION_NAME)
+		CFGSetDefault($CFGKEY_WIDTH, 600)
+		...
+	EndFunc
 
 Access:
-    get:
-        Local $width = CFGGet($CFGKEY_WIDTH)
-    set:
-        CFGSet($CFGKEY_WIDTH, 500)
-    exist:
-        If CFGKeyIndex($CFGKEY_WIDTH) >= 0 Then ...
-    default:
-        CFGSetDefault($CFGKEY_WIDTH, 600)
+	get:
+		Local $width = CFGGet($CFGKEY_WIDTH)
+	set:
+		CFGSet($CFGKEY_WIDTH, 500)
+	exist:
+		If CFGKeyIndex($CFGKEY_WIDTH) >= 0 Then ...
+	default:
+		CFGSetDefault($CFGKEY_WIDTH, 600)
 
 Write data back to ini:
-    ; When idle or before exit
-    If CFGNeedWriteBack() Then
-        CFGWriteBack($PATH_INI, $SECTION_NAME)
-    EndIf
+	; When idle or before exit
+	If CFGNeedWriteBack() Then
+		CFGWriteBack($PATH_INI, $SECTION_NAME)
+	EndIf
 
 #comments-end
 
