@@ -31,7 +31,7 @@ def compile(src):
 def package(fn):
     out = fn[:-4] + '.zip'
     print 'Package %s ......' % out
-    with zipfile.ZipFile(out, 'w') as zip:
+    with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as zip:
         zip.write(fn)
         zip.write('NaviAssist.sample.ini', 'NaviAssist.ini')
         zip.write(r'extensions\NaviData_AutoIt3.chm.txt')
