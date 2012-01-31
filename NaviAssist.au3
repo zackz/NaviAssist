@@ -57,6 +57,12 @@ Global $g_bitsDebugOutput ; 0: no output, 1: console, 2: OutputDebugString
 main()
 
 Func main()
+	; Only one instance running except started with command line.
+	If $CmdLine[0] = 0 And _Singleton($NAME, 1) = 0 Then
+		WinActivate($MAIN_TITLE)
+		Exit
+	EndIf
+
 	Opt("MustDeclareVars", 1)
 	Opt("TrayMenuMode", 1)
 	Opt("TrayAutoPause", 0)
