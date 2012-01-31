@@ -16,7 +16,7 @@
 #include <cfgmgr.au3>
 
 Global Const $NAME = "NaviAssist"
-Global Const $VERSION = "0.2.0"
+Global Const $VERSION = "0.2.1"
 Global Const $MAIN_TITLE = $NAME & " " & $VERSION
 Global Const $PATH_INI = @ScriptDir & "\" & "NaviAssist.ini"
 Global Const $SECTION_NAME = "PROPERTIES"
@@ -46,6 +46,7 @@ Global $g_idEdit
 Global $g_hEdit
 Global $g_wEditProcOld
 Global $g_wListProcOld
+Global $g_idTrayQuit
 Global $g_iLastTouchTime = 0
 Global $g_hOwnedFF
 Global $g_NaviData[$NAVI_MAX + 1]
@@ -60,12 +61,14 @@ Func main()
 	Opt("TrayMenuMode", 1)
 	Opt("TrayAutoPause", 0)
 	Opt("TrayIconDebug", 0)
+	Opt("TrayOnEventMode", 1)
 	GUIRegisterMsg($WM_COMMAND, "WM_COMMAND")
 	GUIRegisterMsg($WM_NOTIFY, "WM_NOTIFY")
 
 	TCPStartup()
 	InitCFG()
 	ReadAllData()
+	InitTray()
 	MainDlg()
 	TCPShutdown()
 	dbg("Leaving...")
@@ -211,6 +214,19 @@ Func HotKey_Navi()
 	ClearFilter()
 	WinSetState($g_hGUI, "", @SW_SHOW)
 	WinActivate($g_hGUI)
+EndFunc
+
+Func InitTray()
+	$g_idTrayQuit = TrayCreateItem("Quit")
+	TrayItemSetOnEvent(-1, "Tray_EventHandler")
+EndFunc
+
+Func Tray_EventHandler()
+	dbg("Tray_EventHandler()", @TRAY_ID)
+	Switch @TRAY_ID
+		Case $g_idTrayQuit
+			WinClose($g_hGUI)
+	EndSwitch
 EndFunc
 
 Func MainDlg()
