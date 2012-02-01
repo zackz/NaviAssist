@@ -49,10 +49,11 @@ Global $g_wListProcOld
 Global $g_idTrayQuit
 Global $g_iLastTouchTime = 0
 Global $g_hOwnedFF
-Global $g_AutoQuit = False
+Global $g_bAutoQuit = False
+Global $g_bCommandLine = False
 Global $g_bitsDebugOutput ; 0: no output, 1: console, 2: OutputDebugString
 
-; $g_NaviData[0], length
+; $g_NaviData[0], length, $NAVI_MAX + 1
 ; $g_NaviData[N], navi defined in cfg
 ; $g_NaviData[$NAVI_MAX], navi from command line
 Global $g_NaviData[$NAVI_MAX + 2]
@@ -71,12 +72,13 @@ Func main()
 
 	Opt("MustDeclareVars", 1)
 	Opt("TrayMenuMode", 1)
-	Opt("TrayAutoPause", 0)
 	Opt("TrayIconDebug", 0)
 	Opt("TrayOnEventMode", 1)
+	Opt("WinWaitDelay", 0)
 	GUIRegisterMsg($WM_COMMAND, "WM_COMMAND")
 	GUIRegisterMsg($WM_NOTIFY, "WM_NOTIFY")
-
+	GUIRegisterMsg($WM_COPYDATA, "WM_COPYDATA")
+	
 	TCPStartup()
 	InitCFG()
 	ReadAllData()
@@ -89,6 +91,7 @@ EndFunc
 Func InitCFG()
 	Local $t = _Timer_Init()
 	CFGInitData($PATH_INI, $SECTION_NAME)
+	
 	; General
 	If CFGKeyIndex($CFGKEY_NEWFF_CMD) < 0 Then
 		Local $pathFirefox = "C:\Program Files\Mozilla Firefox\firefox.exe"
@@ -102,31 +105,36 @@ Func InitCFG()
 	CFGSetDefault($CFGKEY_MAX_LIST_COUNT, 100)
 	$g_bitsDebugOutput = CFGSetDefault($CFGKEY_DEBUG_BITS, "0")
 	dbg("InitCFG - 1 Time:", _Timer_Diff($t))
-	; Navi
+	
+	; Default navi
 	If Not IsNaviKeyExist(1) Then
 		; Default one
 		CFGSetDefault(GetNaviKey(1, $CFGKEY_NAVI_DATA), "")
 		CFGSetDefault(GetNaviKey(1, $CFGKEY_NAVI_HOTKEY), "!{F2}")
 		CFGSetDefault(GetNaviKey(1, $CFGKEY_NAVI_CMD), $CFGCONST_WINLIST)
 	EndIf
-	If $CmdLine[0] = 0 Then
+	
+	; Navi
+	$g_NaviData[0] = $NAVI_MAX + 1
+	If $CmdLine[0] = 2 Then
+		; Command line, redirect index $NAVI_MAX to command line, see GetNaviValue
+		; And no hotkey/tray in command line mode
+		$g_NaviCurrent = $NAVI_MAX
+		$g_NaviTmp_Data = $CmdLine[1]
+		$g_NaviTmp_CMD = $CmdLine[2]
+		$g_bAutoQuit = True
+		$g_bCommandLine = True
+		dbg("Command line", $CmdLine[0], $CmdLineRaw)
+	Else
+		dbg("Error command line", $CmdLine[0], $CmdLineRaw)
+	EndIf
+	If Not $g_bCommandLine Then
+		; Load navis defined in cfg
 		For $i = 1 To $NAVI_MAX
 			If Not IsNaviKeyExist($i) Then ContinueLoop
 			HotKeySet(GetNaviValue($i, $CFGKEY_NAVI_HOTKEY), "HotKey_Navi")
 			$g_NaviCurrent = $i
 		Next
-		$g_NaviData[0] = $i - 1
-	ElseIf $CmdLine[0] = 2 Then
-		; Command line, redirect index $NAVI_MAX to command line, see GetNaviValue
-		; And no hotkey/tray in command line mode
-		$g_NaviData[0] = 1
-		$g_NaviCurrent = $NAVI_MAX
-		$g_AutoQuit = True
-		$g_NaviTmp_Data = $CmdLine[1]
-		$g_NaviTmp_CMD = $CmdLine[2]
-		dbg("Command line", $CmdLine[0], $CmdLineRaw)
-	Else
-		dbg("Error command line", $CmdLine[0], $CmdLineRaw)
 	EndIf
 	dbg("InitCFG - 2 Time:", _Timer_Diff($t))
 EndFunc
@@ -136,7 +144,7 @@ Func GetNaviKey($index, $key)
 EndFunc
 
 Func GetNaviValue($index, $key)
-	If $g_NaviCurrent = $NAVI_MAX Then
+	If $index = $NAVI_MAX Then
 		If Not($key <> $CFGKEY_NAVI_DATA) Then
 			Return $g_NaviTmp_Data
 		ElseIf Not($key <> $CFGKEY_NAVI_HOTKEY) Then
@@ -150,30 +158,32 @@ Func GetNaviValue($index, $key)
 EndFunc
 
 Func IsNaviKeyExist($index)
-	Local $value = CFGGet(GetNaviKey($index, $CFGKEY_NAVI_HOTKEY))
-	If $value Then
-		Return True
-	Else
-		Return False
-	EndIf
+	If $index = $NAVI_MAX Then Return Not Not $g_NaviTmp_CMD
+	Local $value = GetNaviValue($index, $CFGKEY_NAVI_HOTKEY)
+	Return Not Not $value
 EndFunc
 
 Func ReadAllData()
-	For $i = 1 To $g_NaviData[0]
-		$g_NaviData[$i] = ReadData($i)
-	Next
+	If $g_bCommandLine Then
+		$g_NaviData[$NAVI_MAX] = ReadData($NAVI_MAX)
+	Else
+		For $i = 1 To $g_NaviData[0]
+			$g_NaviData[$i] = ReadData($i)
+		Next
+	EndIf
 EndFunc
 
 Func ReadData($index)
 	Local $t = _Timer_Init()
+	If Not IsNaviKeyExist($index) Then Return
 	Local $sNaviDataFile = GetNaviValue($index, $CFGKEY_NAVI_DATA)
-	If Not $sNaviDataFile Then Return
 	; Line: "key###catalog###data"
 	Local $sFileContent = FileRead($sNaviDataFile)
 	Local $splitedLines = StringSplit($sFileContent, @CRLF, 3)
 	Local $data[UBound($splitedLines) + 1][3]
 	Local $n = 1
 	For $line In $splitedLines
+		If Not $line Then ContinueLoop
 		Local $tmp = StringSplit($line, "###", 3)
 		If UBound($tmp) <> 3 Then
 			dbg("Error line?", $sNaviDataFile, $n, '"' & $line & '"')
@@ -185,12 +195,12 @@ Func ReadData($index)
 		$n = $n + 1
 	Next
 	$data[0][0] = $n - 1
-	dbg($index, "Navi data:", $sNaviDataFile, "Total lines:", $data[0][0])
+	dbg($index, "Navi:", $sNaviDataFile, "Lines:", $data[0][0])
 	dbg("Time:", _Timer_Diff($t))
 	Return $data
 EndFunc
 
-Func NaviActivate($index)
+Func NaviSwitchData($index)
 	$g_NaviCurrent = $index
 	If Not(GetNaviValue($g_NaviCurrent, $CFGKEY_NAVI_CMD) <> $CFGCONST_WINLIST) Then
 		; Winlist
@@ -212,9 +222,17 @@ Func NaviActivate($index)
 	EndIf
 EndFunc
 
-Func HotKey_Navi()
-	; Switch navi
+Func NaviActivate($index)
 	Local $t = _Timer_Init()
+	NaviSwitchData($index)
+	dbg("NaviActivate(), Index:", $index, "Time:", _Timer_Diff($t))
+	ClearFilter()
+	WinSetState($g_hGUI, "", @SW_SHOW)
+	WinActivate($g_hGUI)
+	dbg("NaviActivate(), Time:", _Timer_Diff($t))
+EndFunc
+
+Func HotKey_Navi()
 	Local $new = 1
 	For $i = 1 To $g_NaviData[0]
 		If @HotKeyPressed == GetNaviValue($i, $CFGKEY_NAVI_HOTKEY) Then
@@ -223,12 +241,6 @@ Func HotKey_Navi()
 		EndIf
 	Next
 	NaviActivate($new)
-	dbg("HotKey_Navi(), New navi index:", $new, "Time:", _Timer_Diff($t))
-	
-	; Clear old filter
-	ClearFilter()
-	WinSetState($g_hGUI, "", @SW_SHOW)
-	WinActivate($g_hGUI)
 EndFunc
 
 Func InitTray()
@@ -331,6 +343,25 @@ Func WM_NOTIFY($hWnd, $iMsg, $iwParam, $ilParam)
 			EndSwitch
 	EndSwitch
 	Return $GUI_RUNDEFMSG
+EndFunc
+
+Func WM_COPYDATA($hWnd, $iMsg, $iwParam, $ilParam)
+	dbg("WM_COPYDATA", $hWnd, $iMsg, $iwParam, $ilParam)
+	Local $structCOPYDATA = DllStructCreate("Ptr;DWord;Ptr", $ilParam)
+	Local $len = DllStructGetData($structCOPYDATA, 2)
+	Local $structCMD = DllStructCreate("Char[" & $len & "]", DllStructGetData($structCOPYDATA, 3))
+	Local $data = DllStructGetData($structCMD, 1)
+	dbg("WM_COPYDATA", $data, $len)
+	Local $splited = StringSplit($data, "###", 1)
+	if $splited[0] = 2 Then
+		$g_NaviTmp_Data = $splited[1]
+		$g_NaviTmp_CMD = $splited[2]
+		$g_NaviData[$NAVI_MAX] = ReadData($NAVI_MAX)
+		NaviActivate($NAVI_MAX)
+	Else
+		dbg("WM_COPYDATA, Error CMD")
+	EndIf
+	Return True
 EndFunc
 
 Func EditWindowProc($hWnd, $Msg, $wParam, $lParam)
@@ -569,9 +600,9 @@ Func Enter_SciTE($hSciTE, $sCMD)
 	; http://www.scintilla.org/SciTEDirector.html
 	; http://msdn.microsoft.com/en-us/library/windows/desktop/ms649011%28v=vs.85%29.aspx
 	dbg("Enter_SciTE($hSciTE, $sCMD)", $hSciTE, $sCMD)
-	Local $structCMD = DllStructCreate('Char[' & StringLen($sCMD) & ']')
+	Local $structCMD = DllStructCreate("Char[" & StringLen($sCMD) & "]")
 	DllStructSetData($structCMD, 1, $sCMD)
-	Local $structCOPYDATA = DllStructCreate('Ptr;DWord;Ptr')
+	Local $structCOPYDATA = DllStructCreate("Ptr;DWord;Ptr")
 	DllStructSetData($structCOPYDATA, 1, 0)
 	DllStructSetData($structCOPYDATA, 2, StringLen($sCMD))
 	DllStructSetData($structCOPYDATA, 3, DllStructGetPtr($structCMD))
@@ -641,7 +672,7 @@ Func Enter()
 	Else
 		dbg("Unknown CMD!")
 	EndIf
-	If $g_AutoQuit Then
+	If $g_bAutoQuit Then
 		WinClose($g_hGUI)
 	Else
 		; Auto hide
