@@ -298,7 +298,10 @@ Func MainDlg()
 	While 1
 		Switch GUIGetMsg()
 			Case $GUI_EVENT_CLOSE
-				ExitLoop
+				Local $ret = MsgBox(1, $NAME, "Close " & $NAME & "?")
+				If $ret = 1 Then
+					ExitLoop
+				EndIf
 		EndSwitch
 	WEnd
 	
