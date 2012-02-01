@@ -21,3 +21,12 @@ How To Use
 ----------
 
 ...
+
+History
+-------
+
+* 0.2.1 Some optimizations about command line mode and temporary navi.
+Add two extension scripts - dumpfiles and dumpctags.
+* 0.2.0 Basic functions and GUI, several command processors: 
+Winlist/MozRepl/Scite. Sample ini and extensions include dumped python272
+and AutoIt CHM files.
