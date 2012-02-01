@@ -51,7 +51,7 @@ EndFunc
 Func CFGKeyIndex($key)
 	For $i = 1 To $cfg_avCFG[0][0]
 		; Case insensitive
-		If Not($key <> $cfg_avCFG[$i][0]) Then Return $i
+		If $key = $cfg_avCFG[$i][0] Then Return $i
 	Next
 	Return -1  ; Not exist
 EndFunc
