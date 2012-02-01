@@ -37,6 +37,7 @@ def package(fn):
         zip.write(r'extensions\NaviData_AutoIt3.chm.txt')
         zip.write(r'extensions\NaviData_python272.chm.txt')
         zip.write(r'extensions\NaviData_python272.txt')
+        zip.write(r'extensions\navicmd.py')
 
 if __name__ == '__main__':
     fn = compile('NaviAssist.au3')
