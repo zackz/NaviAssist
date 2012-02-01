@@ -4,36 +4,30 @@ import datetime
 import navicmd
 
 def is_ignored_file(fn):
-    ignore_list = ['.pyc', '.obj']
-    for one in ignore_list:
-        if fn.lower().endswith(one):
-            return True
     return False
 
 def is_ignored_dir(fn):
-    ignore_list = ['.svn', 'CVS']
-    for one in ignore_list:
-        if os.path.basename(fn) == one:
-            return True
     return False
 
 def dump_files(dest, root, fout):
+    if not dest.endswith('\\'):
+        dest += '\\'
     files = []
     dirs = []
     for one in os.listdir(dest):
-        one = os.path.join(dest, one)
-        if os.path.isfile(one):
-            if not is_ignored_file(one):
+        fullpath = dest + one
+        if os.path.isfile(fullpath):
+            if not is_ignored_file(fullpath):
                 files.append(one)
-        elif not is_ignored_dir(one):
-            dirs.append(one)
+        elif not is_ignored_dir(fullpath):
+            dirs.append(fullpath)
 
     count = 0
     files.sort(key=lambda x: x.lower())
+    path_catalog = dest.replace(root, '.')
+    path_data = dest.replace('\\', '\\\\')
     for one in files:
-        line = '%s###%s###%s\n' % (os.path.basename(one),
-                                   one.replace(root, '.'),
-                                   'open:%s' % (one.replace('\\', '\\\\')))
+        line = '%s###%s###%s\n' % (one, path_catalog + one, 'open:' + path_data + one)
         fout.write(line)
         count += 1
 
