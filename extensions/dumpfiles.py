@@ -1,6 +1,7 @@
 import os
 import sys
 import datetime
+import tempfile
 import navicmd
 
 def is_ignored_file(fn):
@@ -42,12 +43,12 @@ if __name__ == '__main__':
 
     root = os.path.dirname(os.path.abspath(dest))
     print 'Dump files, root: "%s"' % (root)
-    with open('hhk.txt', 'w') as f:
+    fn = os.path.join(tempfile.gettempdir(), 'NaviData_files.txt')
+    with open(fn, 'w') as f:
         lasttime = datetime.datetime.now()
         print 'Files:', dump_files(root, root, f)
         print 'Time: ', datetime.datetime.now() - lasttime
 
-    navicmd.navicmd(os.path.abspath('hhk.txt'),
-                    'scite:%s' % scite_handle,
+    navicmd.navicmd(fn, 'scite:%s' % scite_handle,
                     r'C:\PRJ\AutoScript\NaviAssist\NaviAssist.au3')
 
