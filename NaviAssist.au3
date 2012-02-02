@@ -145,11 +145,11 @@ EndFunc
 
 Func GetNaviValue($index, $key)
 	If $index = $NAVI_MAX Then
-		If Not($key <> $CFGKEY_NAVI_DATA) Then
+		If $key = $CFGKEY_NAVI_DATA Then
 			Return $g_NaviTmp_Data
-		ElseIf Not($key <> $CFGKEY_NAVI_HOTKEY) Then
+		ElseIf $key = $CFGKEY_NAVI_HOTKEY Then
 			Return ""
-		ElseIf Not($key <> $CFGKEY_NAVI_CMD) Then
+		ElseIf $key = $CFGKEY_NAVI_CMD Then
 			Return $g_NaviTmp_CMD
 		EndIf
 	Else
@@ -202,7 +202,7 @@ EndFunc
 
 Func NaviSwitchData($index)
 	$g_NaviCurrent = $index
-	If Not(GetNaviValue($g_NaviCurrent, $CFGKEY_NAVI_CMD) <> $CFGCONST_WINLIST) Then
+	If GetNaviValue($g_NaviCurrent, $CFGKEY_NAVI_CMD) = $CFGCONST_WINLIST Then
 		; Winlist
 		Local $av = WinList()
 		Local $list[$av[0][0]][3]
@@ -548,7 +548,7 @@ EndFunc
 Func Enter_GetURL($c2)
 	; $c2("local") --> url
 	Local $left6 = StringLeft($c2, 6)
-	If Not($left6 <> "http:/") Or Not($left6 <> "https:") Or Not($left6 <> "ftp://") Then
+	If $left6 = "http:/" Or $left6 = "https:" Or $left6 = "ftp://" Then
 		Return $c2
 	Else
 		Local $navipath = _PathFull(GetNaviValue($g_NaviCurrent, $CFGKEY_NAVI_DATA))
@@ -649,7 +649,7 @@ Func Enter()
 		$cmdRight = StringMid($cmd, StringLen($splitedCMD[1]) + 2)
 	EndIf
 	dbg("Enter() splited:", $splitedCMD[0], "Right:", $cmdRight)
-	If Not($cmd <> $CFGCONST_FIREFOX) Or Not($cmd <> $CFGCONST_FIREFOXSEND) Then
+	If $cmd = $CFGCONST_FIREFOX Or $cmd = $CFGCONST_FIREFOXSEND Then
 		; Get actived browser window
 		If Not $g_hOwnedFF Or Not WinExists($g_hOwnedFF) Then
 			$g_hOwnedFF = NewFirefox()
@@ -659,18 +659,18 @@ Func Enter()
 		EndIf
 		; Open url with firefox
 		Local $url = Enter_GetURL($lines[$iLine][2])
-		If Not($cmd <> $CFGCONST_FIREFOX) Then
+		If $cmd = $CFGCONST_FIREFOX Then
 			Enter_Firefox($url)
 		Else
 			Enter_Firefox_send($url)
 		EndIf
-	ElseIf Not($cmd <> $CFGCONST_WINLIST) Then
+	ElseIf $cmd = $CFGCONST_WINLIST Then
 		WinActivate($lines[$iLine][2])
-	ElseIf Not($splitedCMD[1] <> $CFGCONST_SCITE) Then
+	ElseIf $splitedCMD[1] = $CFGCONST_SCITE Then
 		Enter_SciTE(Int($splitedCMD[2]), $lines[$iLine][2])
-	ElseIf Not($splitedCMD[1] <> $CFGCONST_CMD) Then
+	ElseIf $splitedCMD[1] = $CFGCONST_CMD Then
 		Enter_CMD($cmdRight, $lines[$iLine][2], True)
-	ElseIf Not($splitedCMD[1] <> $CFGCONST_CMDHIDE) Then
+	ElseIf $splitedCMD[1] = $CFGCONST_CMDHIDE Then
 		Enter_CMD($cmdRight, $lines[$iLine][2], False)
 	Else
 		dbg("Unknown CMD!")
