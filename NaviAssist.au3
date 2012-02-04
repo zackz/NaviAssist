@@ -16,7 +16,7 @@
 #include <cfgmgr.au3>
 
 Global Const $NAME = "NaviAssist"
-Global Const $VERSION = "0.2.1"
+Global Const $VERSION = "0.2.2"
 Global Const $MAIN_TITLE = $NAME & " " & $VERSION
 Global Const $PATH_INI = @ScriptDir & "\" & "NaviAssist.ini"
 Global Const $SECTION_NAME = "PROPERTIES"
