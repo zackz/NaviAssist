@@ -51,6 +51,7 @@ Global $g_iLastTouchTime = 0
 Global $g_hOwnedFF
 Global $g_bAutoQuit = False
 Global $g_bCommandLine = False
+Global $g_bLeaving = False
 Global $g_bitsDebugOutput ; 0: no output, 1: console, 2: OutputDebugString
 
 ; $g_NaviData[0], length, $NAVI_MAX + 1
@@ -252,6 +253,7 @@ Func Tray_EventHandler()
 	dbg("Tray_EventHandler()", @TRAY_ID)
 	Switch @TRAY_ID
 		Case $g_idTrayQuit
+			$g_bLeaving = True
 			WinClose($g_hGUI)
 	EndSwitch
 EndFunc
@@ -298,6 +300,7 @@ Func MainDlg()
 	While 1
 		Switch GUIGetMsg()
 			Case $GUI_EVENT_CLOSE
+				If $g_bLeaving Then ExitLoop
 				Local $ret = MsgBox(1, $NAME, "Close " & $NAME & "?")
 				If $ret = 1 Then
 					ExitLoop
@@ -676,6 +679,7 @@ Func Enter()
 		dbg("Unknown CMD!")
 	EndIf
 	If $g_bAutoQuit Then
+		$g_bLeaving = True
 		WinClose($g_hGUI)
 	Else
 		; Auto hide
