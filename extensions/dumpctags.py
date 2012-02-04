@@ -29,7 +29,8 @@ name_dict = {
     }
 
 def dump_ctags(destfile, fout):
-    cmd = r'ctags58\ctags -x "%s"' % (destfile)
+    ctags = os.path.join(os.path.dirname(sys.argv[0]), r'ctags58\ctags')
+    cmd = '"%s" -x "%s"' % (ctags, destfile)
     print cmd
 
     results = navicmd.runcmd(cmd)[0]
