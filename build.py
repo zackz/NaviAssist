@@ -4,7 +4,7 @@ import sys
 import _winreg
 import zipfile
 
-def compile(src):
+def makeexe(src):
     # Get path of Aut2exe.exe
     key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\AutoIt v3\AutoIt')
     path_autoit = _winreg.QueryValueEx(key, 'InstallDir')[0]
@@ -31,16 +31,16 @@ def compile(src):
 def package(fn):
     out = fn[:-4] + '.zip'
     print 'Package %s ......' % out
-    with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as zip:
-        zip.write(fn)
-        zip.write('NaviAssist.sample.ini', 'NaviAssist.ini')
-        zip.write(r'extensions\NaviData_AutoIt3.chm.txt')
-        zip.write(r'extensions\NaviData_python272.chm.txt')
-        zip.write(r'extensions\NaviData_python272.txt')
-        zip.write(r'extensions\navicmd.py')
+    with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as f:
+        f.write(fn)
+        f.write('NaviAssist.sample.ini', 'NaviAssist.ini')
+        f.write(r'extensions\NaviData_AutoIt3.chm.txt')
+        f.write(r'extensions\NaviData_python272.chm.txt')
+        f.write(r'extensions\NaviData_python272.txt')
+        f.write(r'extensions\navicmd.py')
 
 if __name__ == '__main__':
-    fn = compile('NaviAssist.au3')
+    fn = makeexe('NaviAssist.au3')
     package(fn)
 
 		  	
