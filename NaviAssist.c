@@ -154,7 +154,14 @@ DWORD NAVIAPI UpdateList(DWORD nIndex, HWND hList,
 	for (i = 0; i < g_NaviData[nIndex].nLinesCount; i++)
 	{
 		const LINEDATA * pLine = g_NaviData[nIndex].pLines + i;
-		memcpy(buf, pLine->pKey, min(pLine->pData - pLine->pKey, sizeof(buf)));
+		if (pLine->pData - pLine->pKey > sizeof(buf))
+		{
+			dbg("Key or catalog is too long, skipped...");
+			dbg(pLine->pKey);
+			dbg(pLine->pCatalog);
+			continue;
+		}
+		memcpy(buf, pLine->pKey, pLine->pData - pLine->pKey);
 		p1 = buf;
 		strlwr(p1);
 		p2 = buf + (pLine->pCatalog - pLine->pKey);
