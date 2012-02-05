@@ -19,9 +19,11 @@ Global Const $NAME = "NaviAssist"
 Global Const $VERSION = "0.2.2"
 Global Const $MAIN_TITLE = $NAME & " " & $VERSION
 Global Const $PATH_INI = @ScriptDir & "\" & "NaviAssist.ini"
+Global Const $PATH_DLL = @ScriptDir & "\" & "NaviAssist.dll"
 Global Const $SECTION_NAME = "PROPERTIES"
 Global Const $TITLE_FIREFOX = "[CLASS:MozillaWindowClass]"
 Global Const $NAVI_MAX = 30
+Global Const $INVALID_DLL = -1
 
 Global Const $CFGKEY_WIDTH = "WIDTH"
 Global Const $CFGKEY_HEIGHT = "HEIGHT"
@@ -61,6 +63,7 @@ Global $g_NaviData[$NAVI_MAX + 2]
 Global $g_NaviCurrent
 Global $g_NaviTmp_Data
 Global $g_NaviTmp_CMD
+Global $g_NaviDLL
 
 main()
 
@@ -82,11 +85,25 @@ Func main()
 	
 	TCPStartup()
 	InitCFG()
+	InitDLL()
 	ReadAllData()
 	InitTray()
 	MainDlg()
+
+	If $g_NaviDLL <> $INVALID_DLL Then
+		DllClose($g_NaviDLL)
+	EndIf
 	TCPShutdown()
 	dbg("Leaving...")
+EndFunc
+
+Func InitDLL()
+	$g_NaviDLL = DllOpen($PATH_DLL)
+	dbg("InitDLL()", $PATH_DLL, $g_NaviDLL)
+	If $g_NaviDLL <> $INVALID_DLL Then
+		DllCall($g_NaviDLL, "none", "SetDBGBits", "DWORD", $g_bitsDebugOutput)
+		If @error <> 0 Then dbg("Error DllCall SetDBGBits", @error)
+	EndIf
 EndFunc
 
 Func InitCFG()
@@ -164,6 +181,10 @@ Func IsNaviKeyExist($index)
 	Return Not Not $value
 EndFunc
 
+Func UseNaviDLL($index)
+	Return $g_NaviDLL <> $INVALID_DLL And GetNaviValue($index, $CFGKEY_NAVI_CMD) <> $CFGCONST_WINLIST
+EndFunc
+
 Func ReadAllData()
 	If $g_bCommandLine Then
 		$g_NaviData[$NAVI_MAX] = ReadData($NAVI_MAX)
@@ -178,27 +199,36 @@ Func ReadData($index)
 	Local $t = _Timer_Init()
 	If Not IsNaviKeyExist($index) Then Return
 	Local $sNaviDataFile = GetNaviValue($index, $CFGKEY_NAVI_DATA)
-	; Line: "key###catalog###data"
-	Local $sFileContent = FileRead($sNaviDataFile)
-	Local $splitedLines = StringSplit($sFileContent, @CRLF, 3)
-	Local $data[UBound($splitedLines) + 1][3]
-	Local $n = 1
-	For $line In $splitedLines
-		If Not $line Then ContinueLoop
-		Local $tmp = StringSplit($line, "###", 3)
-		If UBound($tmp) <> 3 Then
-			dbg("Error line?", $sNaviDataFile, $n, '"' & $line & '"')
-			ContinueLoop
-		EndIf
-		$data[$n][0] = $tmp[0]
-		$data[$n][1] = $tmp[1]
-		$data[$n][2] = $tmp[2]
-		$n = $n + 1
-	Next
-	$data[0][0] = $n - 1
-	dbg($index, "Navi:", $sNaviDataFile, "Lines:", $data[0][0])
+	Local $ret
+	If UseNaviDLL($index) Then
+		Local $r = DllCall($g_NaviDLL, "DWORD", "ReadData", "DWORD", $index, "str", $sNaviDataFile)
+		If @error <> 0 Then dbg("Error DllCall ReadData", @error)
+		Local $tmp[1][1] = [[$r[0]]]
+		$ret = $tmp
+	Else
+		; Line: "key###catalog###data"
+		Local $sFileContent = FileRead($sNaviDataFile)
+		Local $splitedLines = StringSplit($sFileContent, @CRLF, 3)
+		Local $data[UBound($splitedLines) + 1][3]
+		Local $n = 1
+		For $line In $splitedLines
+			If Not $line Then ContinueLoop
+			Local $tmp = StringSplit($line, "###", 3)
+			If UBound($tmp) <> 3 Then
+				dbg("Error line?", $sNaviDataFile, $n, '"' & $line & '"')
+				ContinueLoop
+			EndIf
+			$data[$n][0] = $tmp[0]
+			$data[$n][1] = $tmp[1]
+			$data[$n][2] = $tmp[2]
+			$n = $n + 1
+		Next
+		$data[0][0] = $n - 1
+		$ret = $data
+	EndIf
+	dbg($index, "Navi:", $sNaviDataFile, "Lines:", $ret[0][0])
 	dbg("Time:", _Timer_Diff($t))
-	Return $data
+	Return $ret
 EndFunc
 
 Func NaviSwitchData($index)
@@ -628,23 +658,39 @@ EndFunc
 Func Enter()
 	Local $index = _GUICtrlListView_GetNextItem($g_hListView)
 	If $index < 0 Then Return
-	Local $lines = $g_NaviData[$g_NaviCurrent]
+	Local $key, $catalog, $data
 
-;~ 	Local $iLine = _GUICtrlListView_GetItemParam($g_hListView, $index)
-	Local $iLine = -1
-	Local $c0 = _GUICtrlListView_GetItemText($g_hListView, $index, 0)
-	Local $c1 = _GUICtrlListView_GetItemText($g_hListView, $index, 1)
-	For $i = 1 To $lines[0][0]
-		If $c0 == $lines[$i][0] And $c1 == $lines[$i][1] Then
-			$iLine = $i
-			ExitLoop
-		EndIf
-	Next
-	dbg("Enter() Line index:", $iLine)
-	If $iLine <= 0 Then Return
+	If UseNaviDLL($g_NaviCurrent) Then
+		Local $stKey = DllStructCreate("char[1024]")
+		Local $stCatalog = DllStructCreate("char[1024]")
+		Local $stData = DllStructCreate("char[10240]")
+		Local $r = DllCall($g_NaviDLL, "none", "GetSelected", "DWORD", $g_NaviCurrent, _
+			"HWND", $g_hListView, "ptr", DllStructGetPtr($stKey), _
+			"ptr", DllStructGetPtr($stCatalog), "ptr", DllStructGetPtr($stData))
+		If @error <> 0 Then	dbg("Error DllCall GetSelected", @error)
+		$key = DllStructGetData($stKey, 1)
+		$catalog = DllStructGetData($stCatalog, 1)
+		$data = DllStructGetData($stData, 1)
+	Else
+		Local $lines = $g_NaviData[$g_NaviCurrent]
+		Local $iLine = -1
+		Local $c0 = _GUICtrlListView_GetItemText($g_hListView, $index, 0)
+		Local $c1 = _GUICtrlListView_GetItemText($g_hListView, $index, 1)
+		For $i = 1 To $lines[0][0]
+			If $c0 == $lines[$i][0] And $c1 == $lines[$i][1] Then
+				$iLine = $i
+				ExitLoop
+			EndIf
+		Next
+		dbg("Enter() Line index:", $iLine)
+		If $iLine <= 0 Then Return
+		$key = $lines[$iLine][0]
+		$catalog = $lines[$iLine][1]
+		$data = $lines[$iLine][2]
+	EndIf
 	
 	Local $cmd = GetNaviValue($g_NaviCurrent, $CFGKEY_NAVI_CMD)
-	dbg("Enter() Data:", $lines[$iLine][0], $lines[$iLine][1], $lines[$iLine][2])
+	dbg("Enter() Data:", $key, $catalog, $data)
 	dbg("Enter() $cmd:", $cmd)
 	Local $splitedCMD = StringSplit($cmd, ":")
 	Local $cmdRight = $cmd
@@ -661,20 +707,20 @@ Func Enter()
 			WinActivate($g_hOwnedFF)
 		EndIf
 		; Open url with firefox
-		Local $url = Enter_GetURL($lines[$iLine][2])
+		Local $url = Enter_GetURL($data)
 		If $cmd = $CFGCONST_FIREFOX Then
 			Enter_Firefox($url)
 		Else
 			Enter_Firefox_send($url)
 		EndIf
 	ElseIf $cmd = $CFGCONST_WINLIST Then
-		WinActivate($lines[$iLine][2])
+		WinActivate($data)
 	ElseIf $splitedCMD[1] = $CFGCONST_SCITE Then
-		Enter_SciTE(Int($splitedCMD[2]), $lines[$iLine][2])
+		Enter_SciTE(Int($splitedCMD[2]), $data)
 	ElseIf $splitedCMD[1] = $CFGCONST_CMD Then
-		Enter_CMD($cmdRight, $lines[$iLine][2], True)
+		Enter_CMD($cmdRight, $data, True)
 	ElseIf $splitedCMD[1] = $CFGCONST_CMDHIDE Then
-		Enter_CMD($cmdRight, $lines[$iLine][2], False)
+		Enter_CMD($cmdRight, $data, False)
 	Else
 		dbg("Unknown CMD!")
 	EndIf
@@ -705,38 +751,42 @@ Func ListUpdate($sFilter, $showall = False)
 	Local $maxcount = CFGGet($CFGKEY_MAX_LIST_COUNT)
 	Local $lines = $g_NaviData[$g_NaviCurrent]
 	If $showall Then $maxcount = $lines[0][0]
+	Local $i
 
 	; List
-	_GUICtrlListView_BeginUpdate($g_hListView)
-	_GUICtrlListView_DeleteAllItems($g_hListView)
-	Local $more = False
-	Local $aItems[$maxcount][2]
-	Local $aItemsParam[$maxcount]
-	Local $index = 0
-	For $i = 1 To $lines[0][0]
-		If Not $sFilter Or StringInStr($lines[$i][0], $sFilter, 2) Or StringInStr($lines[$i][1], $sFilter, 2) Then
-			$aItems[$index][0] = $lines[$i][0]
-			$aItems[$index][1] = $lines[$i][1]
-			$aItemsParam[$index] = $i
-			$index = $index + 1
-			If $index >= $maxcount Then
-				$more = True
-				ExitLoop
+	If UseNaviDLL($g_NaviCurrent) Then
+		dbg("DWORD", $g_NaviCurrent, "HWND", $g_hListView)
+		Local $r = DllCall($g_NaviDLL, "DWORD", "UpdateList", "DWORD", $g_NaviCurrent, _
+			"HWND", $g_hListView, "str", $sFilter, "DWORD", $maxcount)
+		If @error <> 0 Then dbg("Error DllCall UpdateList", @error)
+		$i = $r[0]
+	Else
+		_GUICtrlListView_BeginUpdate($g_hListView)
+		_GUICtrlListView_DeleteAllItems($g_hListView)
+		Local $more = False
+		Local $aItems[$maxcount][2]
+		Local $aItemsParam[$maxcount]
+		Local $index = 0
+		For $i = 1 To $lines[0][0]
+			If Not $sFilter Or StringInStr($lines[$i][0], $sFilter, 2) Or StringInStr($lines[$i][1], $sFilter, 2) Then
+				$aItems[$index][0] = $lines[$i][0]
+				$aItems[$index][1] = $lines[$i][1]
+				$aItemsParam[$index] = $i
+				$index = $index + 1
+				If $index >= $maxcount Then
+					$more = True
+					ExitLoop
+				EndIf
 			EndIf
+		Next
+		If $index > 0 Then
+			ReDim $aItems[$index][2]
+			_GUICtrlListView_AddArray($g_hListView, $aItems)
 		EndIf
-	Next
-	If $index > 0 Then
-		ReDim $aItems[$index][2]
-		dbg("ListUpdate - 1 Time:", _Timer_Diff($t), $index)
-		_GUICtrlListView_AddArray($g_hListView, $aItems)
-		; too slow...
-;~ 		For $i = 0 To UBound($aItemsParam) - 1
-;~ 			_GUICtrlListView_SetItemParam($g_hListView, $i, $aItemsParam[$i])
-;~ 		Next
-		dbg("ListUpdate - 2 Time:", _Timer_Diff($t))
+		_GUICtrlListView_SetItemState($g_hListView, 0, $LVIS_FOCUSED + $LVIS_SELECTED, $LVIS_FOCUSED + $LVIS_SELECTED)
+		_GUICtrlListView_EndUpdate($g_hListView)
 	EndIf
-	_GUICtrlListView_SetItemState($g_hListView, 0, $LVIS_FOCUSED + $LVIS_SELECTED, $LVIS_FOCUSED + $LVIS_SELECTED)
-	_GUICtrlListView_EndUpdate($g_hListView)
+	dbg("ListUpdate - 2 Time:", _Timer_Diff($t))
 
 	; Title
 	Local $count = _GUICtrlListView_GetItemCount($g_hListView)
