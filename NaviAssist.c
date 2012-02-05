@@ -52,7 +52,7 @@ void dbg(LPCTSTR szFormat, ...)
 	va_start(args, szFormat);
 	_vsntprintf(buf, sizeof(buf), szFormat, args);
 	va_end(args);
-	buf[sizeof(buf) - 1] = 0;
+	buf[sizeof(buf) / sizeof(buf[0]) - 1] = 0;
 
 	if (g_dwDebugBits & 1)
 		_tprintf(_T("%s\n"), buf);
