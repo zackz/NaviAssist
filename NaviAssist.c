@@ -60,6 +60,14 @@ void dbg(LPCTSTR szFormat, ...)
 		OutputDebugString(buf);
 }
 
+void dbgA(LPCSTR szText)
+{
+	if (g_dwDebugBits & 1)
+		printf("%s\n", szText);
+	if (g_dwDebugBits & 2)
+		OutputDebugStringA(szText);
+}
+
 void ClearNaviData(DWORD nIndex)
 {
 	free(g_NaviData[nIndex].pData);
@@ -77,7 +85,7 @@ DWORD NAVIAPI ReadData(DWORD nIndex, LPCTSTR fn)
 	f = _tfopen(fn, _T("r"));
 	if (!f || _tstat(fn, &st) != 0)
 	{
-		dbg(_T("Error file? %s, f"), fn, f);
+		dbg(_T("Error file? %s, %d"), fn, f);
 		return 0;
 	}
 	g_NaviData[nIndex].pData = malloc(st.st_size + 1);
@@ -114,7 +122,8 @@ DWORD NAVIAPI ReadData(DWORD nIndex, LPCTSTR fn)
 		p2 = p1 ? strstr(p1 + 1, szSep) : NULL;
 		if (!p2)
 		{
-			dbg("Error line? %s", pStart);
+			dbg(_T("Error line?"));
+			dbgA(pStart);
 			continue;
 		}
 		memset(p1, 0, nSep);
@@ -156,9 +165,9 @@ DWORD NAVIAPI UpdateList(DWORD nIndex, HWND hList,
 		const LINEDATA * pLine = g_NaviData[nIndex].pLines + i;
 		if (pLine->pData - pLine->pKey > sizeof(buf))
 		{
-			dbg("Key or catalog is too long, skipped...");
-			dbg(pLine->pKey);
-			dbg(pLine->pCatalog);
+			dbg(_T("Key or catalog is too long, skipped..."));
+			dbgA(pLine->pKey);
+			dbgA(pLine->pCatalog);
 			continue;
 		}
 		memcpy(buf, pLine->pKey, pLine->pData - pLine->pKey);
