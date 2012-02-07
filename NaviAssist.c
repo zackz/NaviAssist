@@ -9,16 +9,15 @@ gcc -shared -o NaviAssist.dll NaviAssist.c -Wl,--kill-at
 
 Exported functions:
 void  NAVIAPI SetDBGBits(DWORD bits);
-DWORD NAVIAPI ReadData(DWORD nIndex, LPCTSTR fn);
+DWORD NAVIAPI ReadData(DWORD nIndex, LPCSTR fn);
 DWORD NAVIAPI UpdateList(DWORD nIndex, HWND hList,
-	LPCTSTR pszFilter, DWORD nMaxCount);
+	LPCSTR pszFilter, DWORD nMaxCount);
 void  NAVIAPI GetSelected(DWORD nIndex, HWND hList,
 	BYTE * pRetKey, BYTE * pRetCatalog, BYTE * pRetData);
 */
 
 #include <stdio.h>
 #include <sys/stat.h>
-#include <tchar.h>
 #include <windows.h>
 #include <commctrl.h>
 
@@ -42,30 +41,22 @@ NAVIDATA g_NaviData[100];
 DWORD g_dwDebugBits = 0;  // 0: no output, 1: console, 2: OutputDebugString
 
 
-void dbg(LPCTSTR szFormat, ...)
+void dbg(LPCSTR szFormat, ...)
 {
 	if (g_dwDebugBits == 0)
 		return;
 
-	TCHAR buf[1024];
+	char buf[1024];
 	va_list args;
 	va_start(args, szFormat);
-	_vsntprintf(buf, sizeof(buf), szFormat, args);
+	_vsnprintf(buf, sizeof(buf), szFormat, args);
 	va_end(args);
-	buf[sizeof(buf) / sizeof(buf[0]) - 1] = 0;
+	buf[sizeof(buf) - 1] = 0;
 
 	if (g_dwDebugBits & 1)
-		_tprintf(_T("%s\n"), buf);
+		printf("%s\n", buf);
 	if (g_dwDebugBits & 2)
 		OutputDebugString(buf);
-}
-
-void dbgA(LPCSTR szText)
-{
-	if (g_dwDebugBits & 1)
-		printf("%s\n", szText);
-	if (g_dwDebugBits & 2)
-		OutputDebugStringA(szText);
 }
 
 void ClearNaviData(DWORD nIndex)
@@ -74,7 +65,7 @@ void ClearNaviData(DWORD nIndex)
 	free(g_NaviData[nIndex].pLines);
 }
 
-DWORD NAVIAPI ReadData(DWORD nIndex, LPCTSTR fn)
+DWORD NAVIAPI ReadData(DWORD nIndex, LPCSTR fn)
 {
 	FILE * f;
 	struct _stat st;
@@ -82,10 +73,10 @@ DWORD NAVIAPI ReadData(DWORD nIndex, LPCTSTR fn)
 
 	// Read all file data into g_NaviData[nIndex].pData
 	ClearNaviData(nIndex);
-	f = _tfopen(fn, _T("r"));
-	if (!f || _tstat(fn, &st) != 0)
+	f = fopen(fn, "r");
+	if (!f || _stat(fn, &st) != 0)
 	{
-		dbg(_T("Error file? %s, %d"), fn, f);
+		dbg("Error file? %s, %d", fn, f);
 		return 0;
 	}
 	g_NaviData[nIndex].pData = malloc(st.st_size + 1);
@@ -122,8 +113,7 @@ DWORD NAVIAPI ReadData(DWORD nIndex, LPCTSTR fn)
 		p2 = p1 ? strstr(p1 + 1, szSep) : NULL;
 		if (!p2)
 		{
-			dbg(_T("Error line?"));
-			dbgA(pStart);
+			dbg("Error line? %s", pStart);
 			continue;
 		}
 		memset(p1, 0, nSep);
@@ -138,20 +128,14 @@ DWORD NAVIAPI ReadData(DWORD nIndex, LPCTSTR fn)
 }
 
 DWORD NAVIAPI UpdateList(DWORD nIndex, HWND hList,
-	LPCTSTR pszFilter, DWORD nMaxCount)
+	LPCSTR pszFilter, DWORD nMaxCount)
 {
 	SendMessage(hList, WM_SETREDRAW, FALSE, 0);
 	ListView_DeleteAllItems(hList);
 
-#ifndef UNICODE
 	char bufFilter[200];
 	strncpy(bufFilter, pszFilter, sizeof(bufFilter) - 1);
-#else
-	// Not used...
-	char bufFilter[200];
-	WideCharToMultiByte(CP_ACP, 0, pszFilter, sizeof(bufFilter) - 1,
-		bufFilter, sizeof(bufFilter), NULL, NULL);
-#endif
+	bufFilter[sizeof(bufFilter) - 1] = 0;
 	strlwr(bufFilter);
 
 	LVITEM item;
@@ -165,9 +149,9 @@ DWORD NAVIAPI UpdateList(DWORD nIndex, HWND hList,
 		const LINEDATA * pLine = g_NaviData[nIndex].pLines + i;
 		if (pLine->pData - pLine->pKey > sizeof(buf))
 		{
-			dbg(_T("Key or catalog is too long, skipped..."));
-			dbgA(pLine->pKey);
-			dbgA(pLine->pCatalog);
+			dbg("Key or catalog is too long, skipped...");
+			dbg(pLine->pKey);
+			dbg(pLine->pCatalog);
 			continue;
 		}
 		memcpy(buf, pLine->pKey, pLine->pData - pLine->pKey);
