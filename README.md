@@ -42,10 +42,9 @@ Same as previous one, but use recommended way to open url. (Firefox and MozRepl
 are required)
 
 ```ini
-Navi2_DATA=extensions\NaviData_python272.txt
-Navi2_HOTKEY=!{F8}
-Navi2_CMD=FIREFOX
-NEWFF_CMD="C:\Program Files\Mozilla Firefox\firefox.exe"
+Navi5_DATA=extensions\NaviData_python272.chm.txt
+Navi5_HOTKEY=!{F2}
+Navi5_CMD=FIREFOX
 ```
 
 Settings
@@ -116,7 +115,7 @@ Bastion###(module)###http://docs.python.org/library/bastion.html#module-Bastion
 notepad##editor##C:\Windows\System32\notepad.exe
 ie##browser##C:\Program Files (x86)\Internet Explorer\iexplore.exe
 firefox##browser##C:\Program Files\Mozilla Firefox\firefox.exe
-; A link manager
+; A shortcut manager
 Navi1_DATA=NaviData.txt
 Navi1_HOTKEY=!{F7}
 Navi1_CMD=CMD:%s
