@@ -10,22 +10,119 @@ Getting Started
 ---------------
 
 * [Download](https://github.com/zackz/NaviAssist/downloads) latest zip file.
-It includes two navigator:
-  * Winlist, navigate to all top windows
-  * python doc, navigate to [Python v2.7.2 documentation](http://docs.python.org)
+It includes two sample navigator:
+  * **Winlist**, navigate to all top windows
+  * **python doc**, navigate to [Python v2.7.2 documentation](http://docs.python.org)
 * If you installed [AutoIt(3.3.8)](http://www.autoitscript.com/site/autoit/downloads/)
   * Run NaviAssist.au3 directly
   * Or compile your own excutable file
+* Recommend to install [Python](http://python.org/download/releases/2.7.2/). Some
+scripts and extensions are written in python.
 
-How To Use
-----------
+Settings
+--------
 
+### General settings
+
+Height and width of NaviAssist
+
+```ini
+WIDTH=600
+HEIGHT=300
+```
+
+Firefox path required by cmd `FIREFOX` and `FIREFOXSEND` used to run a new browser.
+NEWFF_CMD can be any browser supported `ALT + D` if just use cmd `FIREFOXSEND`.
+
+```ini
+NEWFF_CMD="C:\Program Files\Mozilla Firefox\firefox.exe"
+```
+
+Navigator key starts with `Navi[N]_` (1 <= N < `MAX_LIST_COUNT`). Each navigator includes
+data/hotkey/cmd.
+
+```ini
+Navi1_DATA=
+Navi1_HOTKEY=!{F7}
+Navi1_CMD=Winlist
+```
+
+**Navi[N]_DATA**, a txt file has lines like "key##category##data"
+
+A sample navidata file, NaviData_python272.txt
+'''
+AL###(module)###http://docs.python.org/library/al.html#module-AL
+BaseHTTPServer###(module)###http://docs.python.org/library/basehttpserver.html#module-BaseHTTPServer
+Bastion###(module)###http://docs.python.org/library/bastion.html#module-Bastion
 ...
+'''
+
+**Navi[N]_HOTKEY**, a key combination for Navi[N]: `! is ALT`, `+ is SHIFT`, `^ is CTRL`,
+`# is WINKEY`, and [more...](http://www.autoitscript.com/autoit3/docs/functions/Send.htm)
+
+**Navi[N]_CMD**, triggered operation after found items
+
+<table>
+  <tr>
+    <th>Navi[N]_CMD</th><th>Description</th>
+  </tr>
+  <tr>
+    <td>WINLIST</td>
+	<td>A demo one. Navi[N]_DATA is not required. All data is automatically generated
+	which includes all top-level windows.</td>
+  </tr>
+  <tr>
+    <td>FIREFOXSEND</td>
+	<td>Send key sequence to firefox. Not only for firefox.</td>
+  </tr>
+  <tr>
+    <td>FIREFOX</td>
+	<td>Recommended url opener. Require Firefox and MozRepl extension.</td>
+  </tr>
+  <tr>
+    <td>CMD</td>
+	<td>Run cmd, and replace `%s` in cmd use `data`
+```ini
+; NavaData.txt
+notepad##editor##C:\Windows\System32\notepad.exe
+ie##browser##C:\Program Files (x86)\Internet Explorer\iexplore.exe
+firefox##browser##C:\Program Files\Mozilla Firefox\firefox.exe
+; A link manager
+Navi1_DATA=NaviData.txt
+Navi1_HOTKEY=!{F7}
+Navi1_CMD=CMD:%s
+```
+	</td>
+  </tr>
+  <tr>
+    <td>CMDHIDE</td>
+	<td>Same as CMD except hiding windows.
+	```ini
+; Another way to open url
+Navi2_DATA=extensions\NaviData_python272.txt
+Navi2_HOTKEY=!{F8}
+Navi2_CMD=CMDHIDE:cmd.exe /c start %s
+	```
+	</td>
+  </tr>
+  <tr>
+    <td>SCITE</td>
+	<td>Use [SciTE director interface](http://www.scintilla.org/SciTEDirector.html)
+	to send SciTE cmd</td>
+  </tr>
+</table>
+
+### Extenstions
+
+* navicmd.py
+* dumpfiles
+* dumpctags
 
 History
 -------
 
-* 0.2.1 Some optimizations about command line mode and temporary navi.
+* 0.2.2 Optimizations about parsing file and updating listview (NaviAssist.dll).
+* 0.2.1 Optimizations about command line mode and temporary navi (navicmd.py).
 Add two extension scripts - dumpfiles and dumpctags.
 * 0.2.0 Basic functions and GUI, several command processors: 
 Winlist/MozRepl/Scite. Sample ini and extensions include dumped python272
