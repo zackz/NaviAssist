@@ -101,7 +101,8 @@ Bastion###(module)###http://docs.python.org/library/bastion.html#module-Bastion
   </tr>
   <tr>
     <td>FIREFOX</td>
-    <td>Recommended url opener. Require Firefox and MozRepl extension.</td>
+    <td>Recommended url opener. Require Firefox and
+    <a href="https://github.com/bard/mozrepl/wiki/">MozRepl</a> extension.</td>
   </tr>
   <tr>
     <td>FIREFOXSEND</td>
