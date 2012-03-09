@@ -36,18 +36,21 @@ def dump_ctags(destfile, fout):
     results = navicmd.runcmd(cmd)[0]
     results = results.replace('enum constant', 'enum')  # for java
 
-    content = []
+    content = []  # [[name, type, lineno, token_destfile, code], ...]
     for line in results.splitlines():
         # Avoid space in path
         line2 = line.replace(destfile, 'token_destfile')
         ctx = line2.split(None, 4)
         content.append(ctx)
-    content.sort(key=lambda x: (name_dict[x[1]][1], x[2]))
+    content.sort(key=lambda x: (int(name_dict[x[1]][1]), int(x[2])))
 
+    print '] %s %s' % (destfile, ' ' * 100)
     for ctx in content:
-        line = '%s###%s###%s\n' % (ctx[4],
-                                   '%-10s L:%4s' % (ctx[1], ctx[2]),
-                                   'goto:%s' % (ctx[2]))
+        if ctx[1].lower() in ('namespace', 'variable', 'macro'):
+            continue
+        line = '%-5s  %-3s %s' % (ctx[2] + ':', ctx[1][0].upper(), ctx[4])
+        print line.ljust(200, ' ') + '###' + ctx[0]
+        line = '%s###%s###%s\n' % (ctx[4], ctx[1], 'goto:%s' % (ctx[2]))
         fout.write(line)
 
 if __name__ == '__main__':
