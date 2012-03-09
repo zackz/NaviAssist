@@ -4,7 +4,7 @@ Navigator Assist
 Navigator Assist is a handy tool for quickly finding and navigating stuff.
 NaviAssist is another small apps as PuTTYAssist, which wroten for myself
 and friends prefer to use keyboard instead of mouse. And NaviAssist is
-inspired by [Visual Assist X](http://www.wholetomato.com/) 
+inspired by [Visual Assist X](http://www.wholetomato.com/)
 
 Getting Started
 ---------------
@@ -31,8 +31,8 @@ WIDTH=600
 HEIGHT=300
 ```
 
-Firefox path required by cmd `FIREFOX` and `FIREFOXSEND` used to run a new browser.
-NEWFF_CMD can be any browser supported `ALT + D` if just use cmd `FIREFOXSEND`.
+Firefox path required by command `FIREFOX` and `FIREFOXSEND` used to run a new browser.
+NEWFF_CMD can be any browser supported `ALT + D` if just use command `FIREFOXSEND`.
 
 ```ini
 NEWFF_CMD="C:\Program Files\Mozilla Firefox\firefox.exe"
@@ -47,20 +47,21 @@ Navi1_HOTKEY=!{F7}
 Navi1_CMD=Winlist
 ```
 
-**Navi[N]_DATA**, a txt file has lines like "key##category##data"
+* `Navi[N]_DATA`, a txt file has lines like `key##category##data`
 
 A sample navidata file, NaviData_python272.txt
-'''
+
+```
 AL###(module)###http://docs.python.org/library/al.html#module-AL
 BaseHTTPServer###(module)###http://docs.python.org/library/basehttpserver.html#module-BaseHTTPServer
 Bastion###(module)###http://docs.python.org/library/bastion.html#module-Bastion
 ...
-'''
+```
 
-**Navi[N]_HOTKEY**, a key combination for Navi[N]: `! is ALT`, `+ is SHIFT`, `^ is CTRL`,
+* `Navi[N]_HOTKEY`, a key combination for Navi[N]: `! is ALT`, `+ is SHIFT`, `^ is CTRL`,
 `# is WINKEY`, and [more...](http://www.autoitscript.com/autoit3/docs/functions/Send.htm)
 
-**Navi[N]_CMD**, triggered operation after found items
+* `Navi[N]_CMD`, triggered operation after found items
 
 <table>
   <tr>
@@ -68,21 +69,21 @@ Bastion###(module)###http://docs.python.org/library/bastion.html#module-Bastion
   </tr>
   <tr>
     <td>WINLIST</td>
-	<td>A demo one. Navi[N]_DATA is not required. All data is automatically generated
-	which includes all top-level windows.</td>
+    <td>A demo one. Navi[N]_DATA is not required. All data is automatically generated
+    which includes all top-level windows.</td>
   </tr>
   <tr>
     <td>FIREFOXSEND</td>
-	<td>Send key sequence to firefox. Not only for firefox.</td>
+    <td>Send key sequence to firefox. Not only for firefox.</td>
   </tr>
   <tr>
     <td>FIREFOX</td>
-	<td>Recommended url opener. Require Firefox and MozRepl extension.</td>
+    <td>Recommended url opener. Require Firefox and MozRepl extension.</td>
   </tr>
   <tr>
     <td>CMD</td>
-	<td>Run cmd, and replace `%s` in cmd use `data`
-```ini
+    <td>Run cmd, and replace `%s` in cmd use `data`
+<pre>
 ; NavaData.txt
 notepad##editor##C:\Windows\System32\notepad.exe
 ie##browser##C:\Program Files (x86)\Internet Explorer\iexplore.exe
@@ -91,24 +92,24 @@ firefox##browser##C:\Program Files\Mozilla Firefox\firefox.exe
 Navi1_DATA=NaviData.txt
 Navi1_HOTKEY=!{F7}
 Navi1_CMD=CMD:%s
-```
-	</td>
+</pre>
+    </td>
   </tr>
   <tr>
     <td>CMDHIDE</td>
-	<td>Same as CMD except hiding windows.
-	```ini
+    <td>Same as CMD except hiding windows.
+<pre>
 ; Another way to open url
 Navi2_DATA=extensions\NaviData_python272.txt
 Navi2_HOTKEY=!{F8}
 Navi2_CMD=CMDHIDE:cmd.exe /c start %s
-	```
-	</td>
+</pre>
+    </td>
   </tr>
   <tr>
     <td>SCITE</td>
-	<td>Use [SciTE director interface](http://www.scintilla.org/SciTEDirector.html)
-	to send SciTE cmd</td>
+    <td>Use <a href="http://www.scintilla.org/SciTEDirector.html">SciTE director interface</a>
+    to send command to SciTE</td>
   </tr>
 </table>
 
@@ -124,6 +125,6 @@ History
 * 0.2.2 Optimizations about parsing file and updating listview (NaviAssist.dll).
 * 0.2.1 Optimizations about command line mode and temporary navi (navicmd.py).
 Add two extension scripts - dumpfiles and dumpctags.
-* 0.2.0 Basic functions and GUI, several command processors: 
+* 0.2.0 Basic functions and GUI, several command processors:
 Winlist/MozRepl/Scite. Sample ini and extensions include dumped python272
 and AutoIt CHM files.
