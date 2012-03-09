@@ -19,6 +19,35 @@ It includes two sample navigator:
 * Recommend to install [Python](http://python.org/download/releases/2.7.2/). Some
 scripts and extensions are written in python.
 
+Samples
+-------
+
+Show all top-level windows, and bring selected window to top
+
+```ini
+Navi1_DATA=
+Navi1_HOTKEY=!{F7}
+Navi1_CMD=Winlist
+```
+
+Show python272 keywords, and open python document with default browser
+
+```ini
+Navi2_DATA=extensions\NaviData_python272.txt
+Navi2_HOTKEY=!{F8}
+Navi2_CMD=CMDHIDE:cmd.exe /c start %s
+```
+
+Same as previous one, but use recommended way to open url. (Firefox and MozRepl
+are required)
+
+```ini
+Navi2_DATA=extensions\NaviData_python272.txt
+Navi2_HOTKEY=!{F8}
+Navi2_CMD=FIREFOX
+NEWFF_CMD="C:\Program Files\Mozilla Firefox\firefox.exe"
+```
+
 Settings
 --------
 
@@ -32,14 +61,13 @@ HEIGHT=300
 ```
 
 Firefox path required by command `FIREFOX` and `FIREFOXSEND` used to run a new browser.
-NEWFF_CMD can be any browser supported `ALT + D` if just use command `FIREFOXSEND`.
+NEWFF_CMD can be any browser supported `ALT + D` if just use command `FIREFOXSEND`
 
 ```ini
 NEWFF_CMD="C:\Program Files\Mozilla Firefox\firefox.exe"
 ```
 
-Navigator key starts with `Navi[N]_` (1 <= N < `MAX_LIST_COUNT`). Each navigator includes
-data/hotkey/cmd.
+Navigator key starts with `Navi[N]_` (1 <= N < 100)
 
 ```ini
 Navi1_DATA=
@@ -73,16 +101,16 @@ Bastion###(module)###http://docs.python.org/library/bastion.html#module-Bastion
     which includes all top-level windows.</td>
   </tr>
   <tr>
-    <td>FIREFOXSEND</td>
-    <td>Send key sequence to firefox. Not only for firefox.</td>
-  </tr>
-  <tr>
     <td>FIREFOX</td>
     <td>Recommended url opener. Require Firefox and MozRepl extension.</td>
   </tr>
   <tr>
+    <td>FIREFOXSEND</td>
+    <td>Send key sequence to firefox. Not only for firefox.</td>
+  </tr>
+  <tr>
     <td>CMD</td>
-    <td>Run cmd, and replace `%s` in cmd use `data`
+    <td>Run command (replace "%s" with "data")
 <pre>
 ; NavaData.txt
 notepad##editor##C:\Windows\System32\notepad.exe
@@ -109,15 +137,22 @@ Navi2_CMD=CMDHIDE:cmd.exe /c start %s
   <tr>
     <td>SCITE</td>
     <td>Use <a href="http://www.scintilla.org/SciTEDirector.html">SciTE director interface</a>
-    to send command to SciTE</td>
+    to send command to SciTE
+<pre>
+; Open files use SciTE. See dumpfiles.py and dumpctags.py
+Navi3_DATA=extensions\some_file_list.txt
+Navi3_HOTKEY=!{F9}
+Navi3_CMD=SCITE:open:%s
+</pre>
+    </td>
   </tr>
 </table>
 
 ### Extenstions
 
-* navicmd.py
-* dumpfiles
-* dumpctags
+* **navicmd.py**, a python script for dynamically calling NaviAssist
+* **dumpfiles**, a extenstion for SciTE - dump files in current file path
+* **dumpctags**, a extenstion for SciTE - dump ctags parsed result of current file
 
 History
 -------
