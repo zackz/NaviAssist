@@ -267,6 +267,7 @@ Func NaviActivate($index)
 	ClearFilter()
 	WinSetState($g_hGUI, "", @SW_SHOW)
 	WinActivate($g_hGUI)
+	ControlFocus("", "", $g_idEdit)
 	dbg("NaviActivate(), Time:", _Timer_Diff($t))
 EndFunc
 
@@ -767,6 +768,7 @@ Func ListUpdate($sFilter, $showall = False)
 			"HWND", $g_hListView, "str", $sFilter, "DWORD", $maxcount)
 		If @error <> 0 Then dbg("Error DllCall UpdateList", @error)
 		$i = $r[0]
+		_GUICtrlListView_SetItemState($g_hListView, 0, $LVIS_FOCUSED + $LVIS_SELECTED, $LVIS_FOCUSED + $LVIS_SELECTED)
 	Else
 		_GUICtrlListView_BeginUpdate($g_hListView)
 		_GUICtrlListView_DeleteAllItems($g_hListView)
