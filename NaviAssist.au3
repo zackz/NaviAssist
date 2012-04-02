@@ -412,6 +412,8 @@ Func EditWindowProc($hWnd, $Msg, $wParam, $lParam)
 	Local Const $VK_RETURN = 0x0D
 	Local Const $VK_UP = 0x26
 	Local Const $VK_DOWN = 0x28
+	Local Const $VK_PRIOR = 0x21
+	Local Const $VK_NEXT = 0x22
 	Switch $hWnd
 		Case $g_hEdit
 			Switch $Msg
@@ -437,6 +439,9 @@ Func EditWindowProc($hWnd, $Msg, $wParam, $lParam)
 					EndSwitch
 					If Func_List($key) Then ; Key UP/DOWN
 						Return 0
+					EndIf
+					If $wParam = $VK_PRIOR Or $wParam = $VK_NEXT Then ; PageUp & PageDown
+						Return _WinAPI_CallWindowProc($g_wListProcOld, $g_hListView, $Msg, $wParam, $lParam)
 					EndIf
 				Case $WM_CHAR
 					If $wParam = 127 Then
