@@ -41,6 +41,17 @@ Global Const $CFGCONST_SCITE = "SCITE"
 Global Const $CFGCONST_CMD = "CMD"
 Global Const $CFGCONST_CMDHIDE = "CMDHIDE"
 
+; http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx
+Global Const $VK_RETURN = 0x0D
+Global Const $VK_H = 0x48
+Global Const $VK_J = 0x4A
+Global Const $VK_K = 0x4B
+Global Const $VK_L = 0x4C
+Global Const $VK_M = 0x4D
+Global Const $VK_ESCAPE = 0x1B
+;~ Global Const $VK_PRIOR = 0x21 ; Already defined in Constants.au3
+;~ Global Const $VK_NEXT = 0x22  ; Already defined in Constants.au3
+
 Global $g_hGUI
 Global $g_idListView
 Global $g_hListView
@@ -409,11 +420,6 @@ Func WM_COPYDATA($hWnd, $iMsg, $iwParam, $ilParam)
 EndFunc
 
 Func EditWindowProc($hWnd, $Msg, $wParam, $lParam)
-	Local Const $VK_RETURN = 0x0D
-	Local Const $VK_UP = 0x26
-	Local Const $VK_DOWN = 0x28
-	Local Const $VK_PRIOR = 0x21
-	Local Const $VK_NEXT = 0x22
 	Switch $hWnd
 		Case $g_hEdit
 			Switch $Msg
@@ -427,22 +433,7 @@ Func EditWindowProc($hWnd, $Msg, $wParam, $lParam)
 				Case $WM_SYSCHAR
 					If Func_SysChar($wParam) Then Return 0
 				Case $WM_KEYDOWN
-					Local $key = ""
-					Switch $wParam
-						Case 0x09
-							; VK_TAB
-;~ 							Return 0
-						Case $VK_UP
-							$key = "k"
-						Case $VK_DOWN
-							$key = "j"
-					EndSwitch
-					If Func_List($key) Then ; Key UP/DOWN
-						Return 0
-					EndIf
-					If $wParam = $VK_PRIOR Or $wParam = $VK_NEXT Then ; PageUp & PageDown
-						Return _WinAPI_CallWindowProc($g_wListProcOld, $g_hListView, $Msg, $wParam, $lParam)
-					EndIf
+					If Func_KeyDown($wParam) Then Return 0
 				Case $WM_CHAR
 					If $wParam = 127 Then
 						; CTRL+BACKSPACE
@@ -451,22 +442,11 @@ Func EditWindowProc($hWnd, $Msg, $wParam, $lParam)
 					EndIf
 			EndSwitch
 	EndSwitch
-	
 	Return _WinAPI_CallWindowProc($g_wEditProcOld, $hWnd, $Msg, $wParam, $lParam)
 EndFunc
 
 Func ListWindowProc($hWnd, $Msg, $wParam, $lParam)
 	; http://www.autoitscript.com/forum/topic/83621-trapping-nm-return-in-a-listview-via-wm-notify/
-	; http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx
-	Local Const $VK_RETURN = 0x0D
-	Local Const $VK_UP = 0x26
-	Local Const $VK_DOWN = 0x28
-	Local Const $VK_H = 0x48
-	Local Const $VK_I = 0x49
-	Local Const $VK_J = 0x4A
-	Local Const $VK_K = 0x4B
-	Local Const $VK_L = 0x4C
-	Local Const $VK_M = 0x4D
 	Switch $hWnd
 		Case $g_hListView
 			Switch $Msg
@@ -487,31 +467,31 @@ Func ListWindowProc($hWnd, $Msg, $wParam, $lParam)
 				Case $WM_SYSCHAR
 					If Func_SysChar($wParam) Then Return 0
 				Case $WM_KEYDOWN
-					Local $key = ""
-					Switch $wParam
-						Case $VK_K, $VK_UP
-							$key = "k"
-						Case $VK_J, $VK_DOWN
-							$key = "j"
-						Case $VK_H
-							$key = "h"
-						Case $VK_L
-							$key = "l"
-						Case $VK_M
-							$key = "m"
-					EndSwitch
-					If Func_List($key) Then
-						Return 0
-					EndIf
+					If Func_KeyDown($wParam) Then Return 0
+					If Func_FunctionKey($wParam) Then Return 0
 			EndSwitch
 	EndSwitch
 	Return _WinAPI_CallWindowProc($g_wListProcOld, $hWnd, $Msg, $wParam, $lParam)
 EndFunc
 
 Func Func_SysChar($wParam)
-	; Avoid beep, ALT+[X]
-	If Func_List(Chr($wParam)) Then
-		Return True ; message handled
+	; Return True to avoid beep, ALT+[X]
+	; Function keys, H/J/K/L/M
+	Local $vk = 0
+	Switch Chr($wParam)
+		Case "j"
+			$vk = $VK_J
+		Case "k"
+			$vk = $VK_K
+		Case "h"
+			$vk = $VK_H
+		Case "l"
+			$vk = $VK_L
+		Case "m"
+			$vk = $VK_M
+	EndSwitch
+	If $vk <> 0 And Func_FunctionKey($vk) Then
+		Return True
 	EndIf
 	; Other function keys
 	Switch $wParam
@@ -531,20 +511,41 @@ Func Func_SysChar($wParam)
 	Return False
 EndFunc
 
-Func Func_List($key)
+Func Func_KeyDown($wParam)
+	; PageUp & PageDown
+	If $wParam = $VK_PRIOR Or $wParam = $VK_NEXT Then
+		_WinAPI_CallWindowProc($g_wListProcOld, $g_hListView, $WM_KEYDOWN, $wParam, 0)
+		Return True
+	EndIf
+	; Up & Down
+	If $wParam = $VK_UP Then
+		Func_FunctionKey($VK_K)
+	EndIf
+	If $wParam = $VK_DOWN Then
+		Func_FunctionKey($VK_J)
+	EndIf
+	; Escape
+	If $wParam = $VK_ESCAPE Then
+		WinSetState($g_hGUI, "", @SW_MINIMIZE)
+		Return True
+	EndIf
+	Return False
+EndFunc
+
+Func Func_FunctionKey($vk)
 	Local $next = -1
 	Local $index = _GUICtrlListView_GetNextItem($g_hListView)
 	Local $len = _GUICtrlListView_GetItemCount($g_hListView)
-	Switch $KEY
-		Case "j"
+	Switch $vk
+		Case $VK_J
 			$next = Mod($index + 1 + $len, $len)
-		Case "k"
+		Case $VK_K
 			$next = Mod($index - 1 + $len, $len)
-		Case "h"
+		Case $VK_H
 			$next = 0
-		Case "l"
+		Case $VK_L
 			$next = $len - 1
-		Case "m"
+		Case $VK_M
 			$next = Int(($len - 1) / 2)
 	EndSwitch
 	If $next >= 0 Then
