@@ -16,7 +16,7 @@
 #include <cfgmgr.au3>
 
 Global Const $NAME = "NaviAssist"
-Global Const $VERSION = "0.2.2"
+Global Const $VERSION = "0.2.3"
 Global Const $MAIN_TITLE = $NAME & " " & $VERSION
 Global Const $PATH_INI = @ScriptDir & "\" & "NaviAssist.ini"
 Global Const $PATH_DLL = @ScriptDir & "\" & "NaviAssist.dll"
@@ -235,8 +235,15 @@ Func NaviSwitchData($index)
 	$g_NaviCurrent = $index
 	If GetNaviValue($g_NaviCurrent, $CFGKEY_NAVI_CMD) = $CFGCONST_WINLIST Then
 		; Winlist
-		Local $av = WinList()
-		Local $list[$av[0][0]][3]
+		Local $data = GetNaviValue($g_NaviCurrent, $CFGKEY_NAVI_DATA)
+		dbg("Winlist, data:", $data)
+		Local $av
+		if $data Then
+			$av = WinList($data)
+		Else
+			$av = WinList()
+		EndIf
+		Local $list[$av[0][0] + 1][3]
 		Local $n = 1
 		For $i = 1 To $av[0][0]
 			If BitAND(WinGetState($av[$i][1]), 2) And StringLen($av[$i][0]) <> 0 Then
