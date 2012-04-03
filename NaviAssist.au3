@@ -59,8 +59,10 @@ Global $g_idEdit
 Global $g_hEdit
 Global $g_wEditProcOld
 Global $g_wListProcOld
+Global $g_wListProcHandlePtr
 Global $g_idTrayQuit
 Global $g_iLastTouchTime = 0
+Global $g_iLastSizeTime = 0
 Global $g_hOwnedFF
 Global $g_bAutoQuit = False
 Global $g_bCommandLine = False
@@ -93,6 +95,7 @@ Func main()
 	GUIRegisterMsg($WM_COMMAND, "WM_COMMAND")
 	GUIRegisterMsg($WM_NOTIFY, "WM_NOTIFY")
 	GUIRegisterMsg($WM_COPYDATA, "WM_COPYDATA")
+	GUIRegisterMsg($WM_SIZE, "WM_SIZE")
 	
 	TCPStartup()
 	InitCFG()
@@ -105,6 +108,10 @@ Func main()
 		DllClose($g_NaviDLL)
 	EndIf
 	TCPShutdown()
+
+	; Write back cfg
+	CFGCachedWriteBack(False)
+
 	dbg("Leaving...")
 EndFunc
 
@@ -337,7 +344,8 @@ Func MainDlg()
 	Local $wEditProcHandle = DllCallbackRegister("EditWindowProc", "int", "hwnd;uint;wparam;lparam")
 	$g_wEditProcOld = _WinAPI_SetWindowLong($g_hEdit, $GWL_WNDPROC, DllCallbackGetPtr($wEditProcHandle))
 	Local $wListProcHandle = DllCallbackRegister("ListWindowProc", "int", "hwnd;uint;wparam;lparam")
-	$g_wListProcOld = _WinAPI_SetWindowLong($g_hListView, $GWL_WNDPROC, DllCallbackGetPtr($wListProcHandle))
+	$g_wListProcHandlePtr = DllCallbackGetPtr($wListProcHandle)
+	$g_wListProcOld = _WinAPI_SetWindowLong($g_hListView, $GWL_WNDPROC, $g_wListProcHandlePtr)
 
 	; Show dialog
 	NaviActivate($g_NaviCurrent)
@@ -417,6 +425,29 @@ Func WM_COPYDATA($hWnd, $iMsg, $iwParam, $ilParam)
 		dbg("WM_COPYDATA, Error CMD")
 	EndIf
 	Return True
+EndFunc
+
+Func WM_SIZE($hWndGUI, $MsgID, $wParam, $lParam)
+	If $hWndGUI <> $g_hGUI Then Return $GUI_RUNDEFMSG
+	Local $pos = WinGetPos($g_hGUI)
+	If CFGGetInt($CFGKEY_WIDTH) <> $pos[2] Then
+		CFGSet($CFGKEY_WIDTH, $pos[2])
+		Local $posList = WinGetPos($g_hListView)
+		; Same crash as the one in PuTTYAssist. It seems that scroll message isn't working well
+		; with customized winproc in win7 and WM_SIZE. So use old winproc before sending list
+		; message.
+		_WinAPI_SetWindowLong($g_hListView, $GWL_WNDPROC, $g_wListProcOld)
+		; Here is another trick. Scroll message seems sent latter after '_GUICtrlListView_SetColumnWidth'.
+		; Can't set winproc back fallowed '_GUICtrlListView_SetColumnWidth', because scroll message
+		; sent later is conflict with winproc just set back. So postpone writeback to 'Timer_Refresh'
+		$g_iLastSizeTime = _Timer_Init()
+		_GUICtrlListView_SetColumnWidth($g_hListView, 0, ($posList[2] - 23) / 2)
+		_GUICtrlListView_SetColumnWidth($g_hListView, 1, ($posList[2] - 23) / 2)
+	EndIf
+	If CFGGetInt($CFGKEY_HEIGHT) <> $pos[3] Then
+		CFGSet($CFGKEY_HEIGHT, $pos[3])
+	EndIf
+	Return $GUI_RUNDEFMSG
 EndFunc
 
 Func EditWindowProc($hWnd, $Msg, $wParam, $lParam)
@@ -526,7 +557,7 @@ Func Func_KeyDown($wParam)
 	EndIf
 	; Escape
 	If $wParam = $VK_ESCAPE Then
-		WinSetState($g_hGUI, "", @SW_MINIMIZE)
+		WinSetState($g_hGUI, "", @SW_HIDE)
 		Return True
 	EndIf
 	Return False
@@ -752,9 +783,11 @@ Func Timer_Refresh($hWnd, $Msg, $iIDTimer, $dwTime)
 		$g_iLastTouchTime = 0
 		ListUpdate(GUICtrlRead($g_idEdit))
 	EndIf
-	If CFGNeedWriteBack() Then
-		CFGWriteBack($PATH_INI, $SECTION_NAME)
+	If $g_iLastSizeTime <> 0 And _Timer_Diff($g_iLastSizeTime) > 200 Then
+		$g_iLastSizeTime = 0
+		_WinAPI_SetWindowLong($g_hListView, $GWL_WNDPROC, $g_wListProcHandlePtr)
 	EndIf
+	CFGCachedWriteBack()
 EndFunc
 
 Func ListUpdate($sFilter, $showall = False)
