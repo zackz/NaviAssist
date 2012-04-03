@@ -434,11 +434,11 @@ Func WM_SIZE($hWndGUI, $MsgID, $wParam, $lParam)
 		CFGSet($CFGKEY_WIDTH, $pos[2])
 		Local $posList = WinGetPos($g_hListView)
 		; Same crash as the one in PuTTYAssist. It seems that scroll message isn't working well
-		; with customized winproc in win7 and WM_SIZE. So use old winproc before sending list
+		; with customized winproc in win7 and WM_SIZE. So use original winproc before sending list
 		; message.
 		_WinAPI_SetWindowLong($g_hListView, $GWL_WNDPROC, $g_wListProcOld)
 		; Here is another trick. Scroll message seems sent latter after '_GUICtrlListView_SetColumnWidth'.
-		; Can't set winproc back fallowed '_GUICtrlListView_SetColumnWidth', because scroll message
+		; Can't set winproc back followed '_GUICtrlListView_SetColumnWidth', because scroll message
 		; sent later is conflict with winproc just set back. So postpone writeback to 'Timer_Refresh'
 		$g_iLastSizeTime = _Timer_Init()
 		_GUICtrlListView_SetColumnWidth($g_hListView, 0, ($posList[2] - 23) / 2)
