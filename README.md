@@ -13,9 +13,6 @@ Getting Started
 It includes two sample navigator:
   * **Winlist**, navigate to all top windows
   * **python doc**, navigate to [Python v2.7.2 documentation](http://docs.python.org)
-* If you installed [AutoIt(3.3.8)](http://www.autoitscript.com/site/autoit/downloads/)
-  * Run NaviAssist.au3 directly
-  * Or compile your own excutable file
 * Recommend to install [Python](http://python.org/download/releases/2.7.2/). Some
 scripts and extensions are written in python.
 
@@ -90,14 +87,17 @@ Bastion###(module)###http://docs.python.org/library/bastion.html#module-Bastion
 
 * `Navi[N]_CMD`, triggered operation after found items
 
-<table>
+<table width="100%">
   <tr>
     <th>Navi[N]_CMD</th><th>Description</th>
   </tr>
   <tr>
     <td>WINLIST</td>
-    <td>A demo one. Navi[N]_DATA is not required. All data is automatically generated
-    which includes all top-level windows.</td>
+    <td>A demo one. Show all top-level windows, and all data is automatically generated.<br>
+Navi[N]_DATA is optional, which is a restricted title for searching windows.<br>
+For example use "Navi1_DATA=[CLASS:PuTTY]" to search all PuTTY windows.
+<a href="http://www.autoitscript.com/autoit3/docs/intro/windowsadvanced.htm">More info about it.</a>
+    </td>
   </tr>
   <tr>
     <td>FIREFOX</td>
@@ -151,8 +151,14 @@ Navi3_CMD=SCITE:open:%s
 ### Extenstions
 
 * **navicmd.py**, a python script for dynamically calling NaviAssist
-* **dumpfiles**, a extenstion for SciTE - dump files in current file path
-* **dumpctags**, a extenstion for SciTE - dump ctags parsed result of current file
+* CHM document
+  * **NaviData_python272.txt**, python272 documents point to
+[Python v2.7.2 documentation](http://docs.python.org)
+  * **NaviData_python272.chm.txt**, python272 documents point to local unpacked chm data
+  * **NaviData_AutoIt3.chm.txt**, autoit documents point to local unpacked chm data
+* SciTE
+  * **dumpfiles**, a extenstion for SciTE - dump files in current file path
+  * **dumpctags**, a extenstion for SciTE - dump ctags parsed result of current file
 
 History
 -------
