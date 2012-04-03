@@ -836,11 +836,13 @@ Func ListUpdate($sFilter, $showall = False)
 	EndIf
 	dbg("ListUpdate - 2 Time:", _Timer_Diff($t))
 
+	dbg($i, $lines[0][0])
+
 	; Title
 	Local $count = _GUICtrlListView_GetItemCount($g_hListView)
 	Local $prefix = $MAIN_TITLE
 	If $sFilter And $count Then
-		If $i > $lines[0][0] Then
+		If $i >= $lines[0][0] Then
 			WinSetTitle($g_hGUI, "", $prefix & ' - "' & $sFilter & '" ' & $count)
 		Else
 			WinSetTitle($g_hGUI, "", $prefix & ' - "' & $sFilter & '" ' & $count & ' and more...')
