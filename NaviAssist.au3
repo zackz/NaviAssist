@@ -62,6 +62,7 @@ Global $g_wEditProcOld
 Global $g_wListProcOld
 Global $g_wListProcHandlePtr
 Global $g_idTrayQuit
+Global $g_iListMargin
 Global $g_iLastTouchTime = 0
 Global $g_iLastSizeTime = 0
 Global $g_hOwnedFF
@@ -343,8 +344,11 @@ Func MainDlg()
 	_GUICtrlListView_SetTextColor($g_hListView, $CLR_BLACK)
 	_GUICtrlListView_SetTextBkColor($g_hListView, $CLR_MONEYGREEN)
 	_GUICtrlListView_SetOutlineColor($g_hListView, $CLR_BLACK)
-	_GUICtrlListView_AddColumn($g_hListView, "key", (CFGGet($CFGKEY_WIDTH) - 23) / 2)
-	_GUICtrlListView_AddColumn($g_hListView, "catalog", (CFGGet($CFGKEY_WIDTH) - 23) / 2)
+	_GUICtrlListView_AddColumn($g_hListView, "key")
+	_GUICtrlListView_AddColumn($g_hListView, "category")
+	Local $posGUI = WinGetPos($g_hGUI)
+	Local $posList = WinGetPos($g_hListView)
+	$g_iListMargin = $posGUI[2] - $posList[2]
 
 	; winproc
 	Local $wEditProcHandle = DllCallbackRegister("EditWindowProc", "int", "hwnd;uint;wparam;lparam")
@@ -438,7 +442,6 @@ Func WM_SIZE($hWndGUI, $MsgID, $wParam, $lParam)
 	Local $pos = WinGetPos($g_hGUI)
 	If CFGGetInt($CFGKEY_WIDTH) <> $pos[2] Then
 		CFGSet($CFGKEY_WIDTH, $pos[2])
-		Local $posList = WinGetPos($g_hListView)
 		; Same crash as the one in PuTTYAssist. It seems that scroll message isn't working well
 		; with customized winproc in win7 and WM_SIZE. So use original winproc before sending list
 		; message.
@@ -448,7 +451,7 @@ Func WM_SIZE($hWndGUI, $MsgID, $wParam, $lParam)
 		; sent later is conflict with winproc just set back. So postpone writeback to 'Timer_Refresh'
 		$g_iLastSizeTime = _Timer_Init()
 		Local $percentage = CFGGetInt($CFGKEY_COLUMN_WIDTH)
-		Local $len = $posList[2] - 23
+		Local $len = $pos[2] - $g_iListMargin - 23
 		_GUICtrlListView_SetColumnWidth($g_hListView, 0, $len * $percentage / 100)
 		_GUICtrlListView_SetColumnWidth($g_hListView, 1, $len * (100 - $percentage) / 100)
 	EndIf
