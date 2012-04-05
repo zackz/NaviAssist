@@ -44,6 +44,8 @@ Navi5_HOTKEY=!{F2}
 Navi5_CMD=FIREFOX
 ```
 
+Another sample: [Use NaviAssist to enhance PuTTYAssist](https://github.com/zackz/NaviAssist/wiki/Use-NaviAssist-to-enhance-PuTTYAssist)
+
 Settings
 --------
 
