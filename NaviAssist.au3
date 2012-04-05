@@ -27,6 +27,7 @@ Global Const $INVALID_DLL = -1
 
 Global Const $CFGKEY_WIDTH = "WIDTH"
 Global Const $CFGKEY_HEIGHT = "HEIGHT"
+Global Const $CFGKEY_COLUMN_WIDTH = "COLUMN_WIDTH"
 Global Const $CFGKEY_NEWFF_CMD = "NEWFF_CMD" ; for firefox/firefoxsend
 Global Const $CFGKEY_DEBUG_BITS = "DEBUG_BITS"
 Global Const $CFGKEY_MAX_LIST_COUNT = "MAX_LIST_COUNT"
@@ -96,7 +97,7 @@ Func main()
 	GUIRegisterMsg($WM_NOTIFY, "WM_NOTIFY")
 	GUIRegisterMsg($WM_COPYDATA, "WM_COPYDATA")
 	GUIRegisterMsg($WM_SIZE, "WM_SIZE")
-	
+
 	TCPStartup()
 	InitCFG()
 	InitDLL()
@@ -127,7 +128,7 @@ EndFunc
 Func InitCFG()
 	Local $t = _Timer_Init()
 	CFGInitData($PATH_INI, $SECTION_NAME)
-	
+
 	; General
 	If CFGKeyIndex($CFGKEY_NEWFF_CMD) < 0 Then
 		Local $pathFirefox = "C:\Program Files\Mozilla Firefox\firefox.exe"
@@ -138,10 +139,11 @@ Func InitCFG()
 	EndIf
 	CFGSetDefault($CFGKEY_WIDTH, 600)
 	CFGSetDefault($CFGKEY_HEIGHT, 300)
+	CFGSetDefault($CFGKEY_COLUMN_WIDTH, 62) ; Column 1: 62%, Column 2: 38%
 	CFGSetDefault($CFGKEY_MAX_LIST_COUNT, 100)
 	$g_bitsDebugOutput = CFGSetDefault($CFGKEY_DEBUG_BITS, "0")
 	dbg("InitCFG - 1 Time:", _Timer_Diff($t))
-	
+
 	; Default navi
 	If Not IsNaviKeyExist(1) Then
 		; Default one
@@ -149,7 +151,7 @@ Func InitCFG()
 		CFGSetDefault(GetNaviKey(1, $CFGKEY_NAVI_HOTKEY), "!{F2}")
 		CFGSetDefault(GetNaviKey(1, $CFGKEY_NAVI_CMD), $CFGCONST_WINLIST)
 	EndIf
-	
+
 	; Navi
 	$g_NaviData[0] = $NAVI_MAX + 1
 	If $CmdLine[0] = 2 Then
@@ -324,7 +326,7 @@ Func MainDlg()
 	; Dialog
 	$g_hGUI = GUICreate("hello", CFGGet($CFGKEY_WIDTH), CFGGet($CFGKEY_HEIGHT), Default, Default, $WS_MAXIMIZEBOX + $WS_SIZEBOX)
 	Local $aiGUISize = WinGetClientSize($g_hGUI)
-	
+
 	; Edit
 	$g_idEdit = GUICtrlCreateEdit("", 0, 0, $aiGUISize[0], 20, $ES_WANTRETURN)
 	$g_hEdit = GUICtrlGetHandle($g_idEdit)
@@ -368,7 +370,7 @@ Func MainDlg()
 				EndIf
 		EndSwitch
 	WEnd
-	
+
 	_Timer_KillTimer($g_hGUI, $idTimer)
 	_WinAPI_SetWindowLong($g_hEdit, $GWL_WNDPROC, $g_wEditProcOld)
 	DllCallbackFree($wEditProcHandle)
@@ -445,8 +447,10 @@ Func WM_SIZE($hWndGUI, $MsgID, $wParam, $lParam)
 		; Can't set winproc back followed '_GUICtrlListView_SetColumnWidth', because scroll message
 		; sent later is conflict with winproc just set back. So postpone writeback to 'Timer_Refresh'
 		$g_iLastSizeTime = _Timer_Init()
-		_GUICtrlListView_SetColumnWidth($g_hListView, 0, ($posList[2] - 23) / 2)
-		_GUICtrlListView_SetColumnWidth($g_hListView, 1, ($posList[2] - 23) / 2)
+		Local $percentage = CFGGetInt($CFGKEY_COLUMN_WIDTH)
+		Local $len = $posList[2] - 23
+		_GUICtrlListView_SetColumnWidth($g_hListView, 0, $len * $percentage / 100)
+		_GUICtrlListView_SetColumnWidth($g_hListView, 1, $len * (100 - $percentage) / 100)
 	EndIf
 	If CFGGetInt($CFGKEY_HEIGHT) <> $pos[3] Then
 		CFGSet($CFGKEY_HEIGHT, $pos[3])
@@ -737,7 +741,7 @@ Func Enter()
 		$catalog = $lines[$iLine][1]
 		$data = $lines[$iLine][2]
 	EndIf
-	
+
 	Local $cmd = GetNaviValue($g_NaviCurrent, $CFGKEY_NAVI_CMD)
 	dbg("Enter() Data:", $key, $catalog, $data)
 	dbg("Enter() $cmd:", $cmd)
@@ -797,7 +801,7 @@ EndFunc
 Func ListUpdate($sFilter, $showall = False)
 	Local $t = _Timer_Init()
 	Local $proc = _WinAPI_SetWindowLong($g_hListView, $GWL_WNDPROC, $g_wListProcOld)
-	
+
 	; List count viewed in listview
 	Local $maxcount = CFGGet($CFGKEY_MAX_LIST_COUNT)
 	Local $lines = $g_NaviData[$g_NaviCurrent]
@@ -854,7 +858,7 @@ Func ListUpdate($sFilter, $showall = False)
 	Else
 		WinSetTitle($g_hGUI, "", $prefix)
 	EndIf
-	
+
 	_WinAPI_SetWindowLong($g_hListView, $GWL_WNDPROC, $proc)
 	dbg("ListUpdate - 3 Time:", _Timer_Diff($t), $sFilter)
 EndFunc
