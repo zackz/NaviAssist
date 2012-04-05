@@ -280,9 +280,13 @@ EndFunc
 
 Func NaviActivate($index)
 	Local $t = _Timer_Init()
+	If $g_NaviCurrent <> $index Or $index = $NAVI_MAX Then
+		ClearFilter()
+	Else
+		TouchKey()
+	EndIf
 	NaviSwitchData($index)
 	dbg("NaviActivate(), Index:", $index, "Time:", _Timer_Diff($t))
-	ClearFilter()
 	WinSetState($g_hGUI, "", @SW_SHOW)
 	WinActivate($g_hGUI)
 	ControlFocus("", "", $g_idEdit)
@@ -528,7 +532,7 @@ Func Func_SysChar($wParam)
 	Switch $wParam
 		Case 8
 			; ALT+BACKSPACE
-			WinSetTitle($g_hEdit, "", "")
+			ClearFilter()
 			Return True
 		Case 122
 			; ALT+Z
