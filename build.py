@@ -19,13 +19,13 @@ def makeexe(src):
     out = src + '-%s.exe' % ver
     if src.lower().endswith('.au3'):
         out = src[:-4] + '-%s.exe' % ver
-        
+
     # Compile
     print 'Compiling %s ......' % src
     print 'Aut2Exe', path_aut2exe
     print 'IN     ', src
     print 'OUT    ', out
-    os.system('"%s" /in %s /out %s' % (path_aut2exe, src, out))
+    os.system('"%s" /in %s /out %s /nopack' % (path_aut2exe, src, out))
     return out
 
 def makedll():
@@ -58,4 +58,3 @@ if __name__ == '__main__':
     fndll = makedll()
     package(fnexe, fndll)
 
-		  	
