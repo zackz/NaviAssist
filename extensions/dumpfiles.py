@@ -8,6 +8,12 @@ def is_ignored_file(fn):
     return False
 
 def is_ignored_dir(fn):
+    ignored_words = [
+        '\\.svn',
+        '\\.git',
+        ]
+    if filter(lambda x: fn.endswith(x), ignored_words):
+        return True
     return False
 
 def dump_files(dest, root, fout):
