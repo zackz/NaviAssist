@@ -85,6 +85,7 @@ main()
 Func main()
 	; Only one instance running except started with command line.
 	If $CmdLine[0] = 0 And _Singleton($NAME, 1) = 0 Then
+		WinSetState($MAIN_TITLE, "", @SW_SHOW)
 		WinActivate($MAIN_TITLE)
 		Exit
 	EndIf
