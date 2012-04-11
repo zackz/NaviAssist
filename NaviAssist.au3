@@ -852,7 +852,7 @@ Func ListUpdate($sFilter, $showall = False)
 	; Title
 	Local $count = _GUICtrlListView_GetItemCount($g_hListView)
 	Local $prefix = $MAIN_TITLE
-	If $sFilter And $count Then
+	If $count Then
 		If $i >= $lines[0][0] Then
 			WinSetTitle($g_hGUI, "", $prefix & ' - "' & $sFilter & '" ' & $count)
 		Else
