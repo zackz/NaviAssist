@@ -325,7 +325,7 @@ Func MainDlg()
 	Local $t = _Timer_Init()
 
 	; Dialog
-	$g_hGUI = GUICreate("hello", CFGGet($CFGKEY_WIDTH), CFGGet($CFGKEY_HEIGHT), Default, Default, $WS_MAXIMIZEBOX + $WS_SIZEBOX)
+	$g_hGUI = GUICreate("hello", Default, Default, Default, Default, $WS_MAXIMIZEBOX + $WS_SIZEBOX)
 	Local $aiGUISize = WinGetClientSize($g_hGUI)
 
 	; Edit
@@ -358,6 +358,8 @@ Func MainDlg()
 	$g_wListProcOld = _WinAPI_SetWindowLong($g_hListView, $GWL_WNDPROC, $g_wListProcHandlePtr)
 
 	; Show dialog
+	WinMove($g_hGUI, "", Default, Default, CFGGetInt($CFGKEY_WIDTH), CFGGet($CFGKEY_HEIGHT))
+	AdjustListColumn()
 	NaviActivate($g_NaviCurrent)
 	ListUpdate('')
 	GUISetState(@SW_SHOW, $g_hGUI)
@@ -437,6 +439,16 @@ Func WM_COPYDATA($hWnd, $iMsg, $iwParam, $ilParam)
 	Return True
 EndFunc
 
+Func AdjustListColumn()
+	; List control hadn't updated yet when WM_SIZE sent, then WinGetClientSize
+	; returned old size of list control. So calculate width of list by width
+	; of main dialog.
+	Local $len = CFGGet($CFGKEY_WIDTH) - $g_iListMargin - 23
+	Local $percentage = CFGGetInt($CFGKEY_COLUMN_WIDTH)
+	_GUICtrlListView_SetColumnWidth($g_hListView, 0, $len * $percentage / 100)
+	_GUICtrlListView_SetColumnWidth($g_hListView, 1, $len * (100 - $percentage) / 100)
+EndFunc
+
 Func WM_SIZE($hWndGUI, $MsgID, $wParam, $lParam)
 	If $hWndGUI <> $g_hGUI Then Return $GUI_RUNDEFMSG
 	Local $pos = WinGetPos($g_hGUI)
@@ -450,10 +462,7 @@ Func WM_SIZE($hWndGUI, $MsgID, $wParam, $lParam)
 		; Can't set winproc back followed '_GUICtrlListView_SetColumnWidth', because scroll message
 		; sent later is conflict with winproc just set back. So postpone writeback to 'Timer_Refresh'
 		$g_iLastSizeTime = _Timer_Init()
-		Local $percentage = CFGGetInt($CFGKEY_COLUMN_WIDTH)
-		Local $len = $pos[2] - $g_iListMargin - 23
-		_GUICtrlListView_SetColumnWidth($g_hListView, 0, $len * $percentage / 100)
-		_GUICtrlListView_SetColumnWidth($g_hListView, 1, $len * (100 - $percentage) / 100)
+		AdjustListColumn()
 	EndIf
 	If CFGGetInt($CFGKEY_HEIGHT) <> $pos[3] Then
 		CFGSet($CFGKEY_HEIGHT, $pos[3])
