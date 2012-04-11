@@ -11,8 +11,9 @@ Getting Started
 
 * [Download](https://github.com/zackz/NaviAssist/downloads) latest zip file.
 It includes two sample navigator:
-  * **Winlist**, navigate to all top windows
-  * **python doc**, navigate to [Python v2.7.2 documentation](http://docs.python.org)
+  * **Winlist**, navigate to all top windows. (Shortcut: `ALT + F7`)
+  * **python doc**, navigate to [Python v2.7.2 documentation](http://docs.python.org).
+(Shortcut: `ALT + F8`)
 * Recommend to install [Python](http://python.org/download/releases/2.7.2/). Some
 scripts and extensions are written in python.
 
@@ -165,6 +166,7 @@ Navi3_CMD=SCITE:open:%s
 History
 -------
 
+* 0.2.3 Add a filter for WINLIST, add COLUMN_WIDTH, and fix some GUI problems.
 * 0.2.2 Optimizations about parsing file and updating listview (NaviAssist.dll).
 * 0.2.1 Optimizations about command line mode and temporary navi (navicmd.py).
 Add two extension scripts - dumpfiles and dumpctags.
