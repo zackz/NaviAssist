@@ -63,6 +63,9 @@ void ClearNaviData(DWORD nIndex)
 {
 	free(g_NaviData[nIndex].pData);
 	free(g_NaviData[nIndex].pLines);
+	g_NaviData[nIndex].pData = NULL;
+	g_NaviData[nIndex].pLines = NULL;
+	g_NaviData[nIndex].nLinesCount = 0;
 }
 
 DWORD NAVIAPI ReadData(DWORD nIndex, LPCSTR fn)
