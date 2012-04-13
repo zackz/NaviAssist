@@ -545,6 +545,22 @@ Func Func_SysChar($wParam)
 	If $vk <> 0 And Func_FunctionKey($vk) Then
 		Return True
 	EndIf
+	; ALT+[N]
+	If 0x30 <= $wParam And $wParam <= 0x39 Then
+		Local $offset = $wParam - 0x31
+		If $offset < 0 Then $offset = 10 ; ALT+0
+		Local $aHit = _GUICtrlListView_HitTest($g_hListView, 3, 3)
+		If $aHit[0] >= 0 Then
+			dbg("Hit:", $aHit[0], "Offset:", $offset)
+			Local $newIndex = $aHit[0] + $offset
+			If $newIndex < _GUICtrlListView_GetItemCount($g_hListView) Then
+				ListSelectItem($newIndex)
+				Enter()
+				Return True
+			EndIf
+		EndIf
+		Return False
+	EndIf
 	; Other function keys
 	Switch $wParam
 		Case 8
@@ -601,7 +617,7 @@ Func Func_FunctionKey($vk)
 			$next = Int(($len - 1) / 2)
 	EndSwitch
 	If $next >= 0 Then
-		_GUICtrlListView_SetItemState($g_hListView, $next, $LVIS_FOCUSED + $LVIS_SELECTED, $LVIS_FOCUSED + $LVIS_SELECTED)
+		ListSelectItem($next)
 		_GUICtrlListView_EnsureVisible($g_hListView, $next)
 		Return True
 	EndIf
@@ -828,7 +844,7 @@ Func ListUpdate($sFilter, $showall = False)
 			"HWND", $g_hListView, "str", $sFilter, "DWORD", $maxcount)
 		If @error <> 0 Then dbg("Error DllCall UpdateList", @error)
 		$i = $r[0]
-		_GUICtrlListView_SetItemState($g_hListView, 0, $LVIS_FOCUSED + $LVIS_SELECTED, $LVIS_FOCUSED + $LVIS_SELECTED)
+		ListSelectItem(0)
 	Else
 		_GUICtrlListView_BeginUpdate($g_hListView)
 		_GUICtrlListView_DeleteAllItems($g_hListView)
@@ -852,7 +868,7 @@ Func ListUpdate($sFilter, $showall = False)
 			ReDim $aItems[$index][2]
 			_GUICtrlListView_AddArray($g_hListView, $aItems)
 		EndIf
-		_GUICtrlListView_SetItemState($g_hListView, 0, $LVIS_FOCUSED + $LVIS_SELECTED, $LVIS_FOCUSED + $LVIS_SELECTED)
+		ListSelectItem(0)
 		_GUICtrlListView_EndUpdate($g_hListView)
 	EndIf
 	dbg("ListUpdate - 2 Time:", _Timer_Diff($t))
@@ -874,6 +890,11 @@ Func ListUpdate($sFilter, $showall = False)
 
 	_WinAPI_SetWindowLong($g_hListView, $GWL_WNDPROC, $proc)
 	dbg("ListUpdate - 3 Time:", _Timer_Diff($t), $sFilter)
+EndFunc
+
+Func ListSelectItem($iItem)
+	Local $iState = $LVIS_FOCUSED + $LVIS_SELECTED
+	_GUICtrlListView_SetItemState($g_hListView, $iItem, $iState, $iState)
 EndFunc
 
 Func dbg($v1="", $v2="", $v3="", $v4="", $v5="")
