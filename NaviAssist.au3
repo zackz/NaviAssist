@@ -492,6 +492,8 @@ Func EditWindowProc($hWnd, $Msg, $wParam, $lParam)
 						ClearFilter()
 						Return 0
 					EndIf
+				Case $WM_MOUSEWHEEL
+					Return _SendMessage($g_hListView, $Msg, $wParam, $lParam)
 			EndSwitch
 	EndSwitch
 	Return _WinAPI_CallWindowProc($g_wEditProcOld, $hWnd, $Msg, $wParam, $lParam)
