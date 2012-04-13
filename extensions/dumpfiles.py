@@ -55,6 +55,5 @@ if __name__ == '__main__':
         print 'Files:', dump_files(root, root, f)
         print 'Time: ', datetime.datetime.now() - lasttime
 
-    navicmd.navicmd(fn, 'scite:%s' % scite_handle,
-                    r'C:\PRJ\AutoScript\NaviAssist\NaviAssist.au3')
+    navicmd.navicmd(fn, 'scite:%s' % scite_handle, navicmd.get_naviassist_path())
 

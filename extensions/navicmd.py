@@ -2,6 +2,7 @@
 
 import os
 import sys
+import re
 import ctypes
 import subprocess
 import _subprocess
@@ -65,6 +66,25 @@ def navicmd(navidata, navicmd, navipath):
         else:
             print 'Error path:', navipath
 
+def get_naviassist_path():
+    """Try to get path of NaviAssist.exe
+
+    Assume that NaviAssist-(version).exe wasn't renamed, and located in parent
+    path of extensions.
+    """
+    path_current = os.path.dirname(os.path.abspath(sys.argv[0]))
+    path_parent = os.path.abspath(os.path.join(path_current, '..'))
+    files = os.listdir(path_parent)
+    name_pattern = re.compile(r'NaviAssist-(\d+)\.(\d+)\.(\d+)\.exe', re.I)
+    naviassist_files = filter(lambda x: name_pattern.match(x), files)
+    if not naviassist_files:
+        return ''
+    naviassist_files_sorted = sorted(
+        naviassist_files,
+        key=lambda x: map(int, name_pattern.match(x).groups()[1:]),
+        reverse=True)
+    return os.path.join(path_parent, naviassist_files_sorted[0])
+
 if __name__ == '__main__':
-    navicmd('', 'winlist', r'C:\NaviAssist\NaviAssist-0.2.1.exe')
+    navicmd('', 'winlist', get_naviassist_path())
 
