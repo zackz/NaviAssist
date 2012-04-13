@@ -36,21 +36,29 @@ def dump_ctags(destfile, navidata, output):
     results = navicmd.runcmd(cmd)[0]
     results = results.replace('enum constant', 'enum')  # for java
 
-    content = []  # [[name, type, lineno, token_destfile, code], ...]
+    # Get contents
+    # [[name, type, lineno, token_destfile, code], ...]
+    content = []
     for line in results.splitlines():
         # Avoid space in path
         line2 = line.replace(destfile, 'token_destfile')
-        ctx = line2.split(None, 4)
-        content.append(ctx)
-    content.sort(key=lambda x: (int(name_dict[x[1]][1]), int(x[2])))
+        dat = line2.split(None, 4)
+        if dat[1] not in ['namespace', 'variable', 'macro']:
+            content.append(dat)
 
+    # Output, sorted by name_dict
     output.write('] %s\n' % destfile)
-    for ctx in content:
-        if ctx[1].lower() in ('namespace', 'variable', 'macro'):
-            continue
-        line = '%-5s  %-3s %s' % (ctx[2] + ':', ctx[1][0].upper(), ctx[4])
-        output.write('%-200s###%s\n' % (line, ctx[0]))
-        line = '%s###%s###%s\n' % (ctx[4], ctx[1], 'goto:%s' % (ctx[2]))
+    for dat in sorted(content, key=lambda x: (int(name_dict[x[1]][1]), int(x[2]))):
+        line = '%-5s  %-3s %s' % (dat[2] + ':', dat[1][0].upper(), dat[4])
+        output.write('%-200s###%s\n' % (line, dat[0]))
+
+    # Navidata, sorted by name
+    for dat in sorted(content, key=lambda x: x[0].lower()):
+        if dat[1] in ('function', ):
+            col2 = dat[0]
+        else:
+            col2 = '%s [%s]' % (dat[0], dat[1])
+        line = '%s###%s###%s\n' % (dat[4], col2, 'goto:%s' % (dat[2]))
         navidata.write(line)
 
 if __name__ == '__main__':
@@ -66,8 +74,7 @@ if __name__ == '__main__':
         dump_ctags(dest, f, output)
     print 'Time: ', datetime.datetime.now() - lasttime
 
-    navicmd.navicmd(fn, 'scite:%s' % scite_handle,
-                    r'C:\PRJ\AutoScript\NaviAssist\NaviAssist.au3')
+    navicmd.navicmd(fn, 'scite:%s' % scite_handle, navicmd.get_naviassist_path())
 
     output.seek(0, os.SEEK_SET)
     print output.read()
