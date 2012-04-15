@@ -12,9 +12,9 @@ Getting Started
 * [Download](https://github.com/zackz/NaviAssist/downloads) latest zip file.
 It includes two sample navigator:
   * **Winlist**, navigate to all top windows. (Shortcut: `ALT + F7`)
-  * **python doc**, navigate to [Python v2.7.2 documentation](http://docs.python.org).
+  * **python doc**, navigate to [Python v2.7.x documentation](http://docs.python.org).
 (Shortcut: `ALT + F8`)
-* Recommend to install [Python](http://python.org/download/releases/2.7.2/). Some
+* Recommend to install [Python](http://python.org/download/). Some
 scripts and extensions are written in python.
 
 Samples
