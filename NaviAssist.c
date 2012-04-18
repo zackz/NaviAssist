@@ -113,7 +113,7 @@ DWORD NAVIAPI ReadData(DWORD nIndex, LPCSTR fn)
 		if (*pStart == 0 || *pStart == ';')
 			continue;  // Empty line or comment ';'
 		p1 = strstr(pStart, szSep);
-		p2 = p1 ? strstr(p1 + 1, szSep) : NULL;
+		p2 = p1 ? strstr(p1 + nSep, szSep) : NULL;
 		if (!p2)
 		{
 			dbg("Error line? %s", pStart);
