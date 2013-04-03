@@ -16,7 +16,7 @@
 #include <cfgmgr.au3>
 
 Global Const $NAME = "NaviAssist"
-Global Const $VERSION = "0.2.3"
+Global Const $VERSION = "0.3.0"
 Global Const $MAIN_TITLE = $NAME & " " & $VERSION
 Global Const $PATH_INI = @ScriptDir & "\" & "NaviAssist.ini"
 Global Const $PATH_DLL = @ScriptDir & "\" & "NaviAssist.dll"
@@ -166,7 +166,8 @@ Func InitCFG()
 		$g_bCommandLine = True
 		dbg("Command line", $CmdLine[0], $CmdLineRaw)
 	Else
-		dbg("Error command line", $CmdLine[0], $CmdLineRaw)
+		dbg("Unknown command line", $CmdLine[0], $CmdLineRaw)
+		$g_bCommandLine = False
 	EndIf
 	If Not $g_bCommandLine Then
 		; Load navis defined in cfg
@@ -409,7 +410,9 @@ Func WM_NOTIFY($hWnd, $iMsg, $iwParam, $ilParam)
 	Switch $hWndFrom
 		Case $g_hListView
 			Switch $iCode
-				Case $NM_DBLCLK ; Sent by a list-view control when the user clicks an item with the left mouse button
+				; Sent by a list-view control when the user clicks an item with
+				; the left mouse button
+				Case $NM_DBLCLK
 					$tInfo = DllStructCreate($tagNMITEMACTIVATE, $ilParam)
 					Local $index = DllStructGetData($tInfo, "Index")
 					If $index >= 0 Then
@@ -513,11 +516,12 @@ Func ListWindowProc($hWnd, $Msg, $wParam, $lParam)
 					EndSwitch
 					; Not working well, can't process ESC or TAB
 					; Try to accept ALT+[X] keys...
-					; http://msdn.microsoft.com/en-us/library/windows/desktop/ms645425%28v=vs.85%29.aspx
+; http://msdn.microsoft.com/en-us/library/windows/desktop/ms645425%28v=vs.85%29.aspx
 					; DLGC_WANTALLKEYS
 					; 0x0004
 					; All keyboard input.
-;~ 					return BitOR(0x0004, _WinAPI_CallWindowProc($g_wListProcOld, $hWnd, $Msg, $wParam, $lParam))
+;~ 					return BitOR(0x0004, _WinAPI_CallWindowProc($g_wListProcOld, _
+;~ 						$hWnd, $Msg, $wParam, $lParam))
 				Case $WM_SYSCHAR
 					If Func_SysChar($wParam) Then Return 0
 				Case $WM_KEYDOWN
@@ -837,6 +841,7 @@ Func ListUpdate($sFilter, $showall = False)
 	Local $maxcount = CFGGet($CFGKEY_MAX_LIST_COUNT)
 	Local $lines = $g_NaviData[$g_NaviCurrent]
 	If $showall Then $maxcount = $lines[0][0]
+	; Already checked items
 	Local $i
 
 	; List
@@ -855,7 +860,8 @@ Func ListUpdate($sFilter, $showall = False)
 		Local $aItemsParam[$maxcount]
 		Local $index = 0
 		For $i = 1 To $lines[0][0]
-			If Not $sFilter Or StringInStr($lines[$i][0], $sFilter, 2) Or StringInStr($lines[$i][1], $sFilter, 2) Then
+			If Not $sFilter Or StringInStr($lines[$i][0], $sFilter, 2) Or _
+					StringInStr($lines[$i][1], $sFilter, 2) Then
 				$aItems[$index][0] = $lines[$i][0]
 				$aItems[$index][1] = $lines[$i][1]
 				$aItemsParam[$index] = $i
@@ -875,16 +881,17 @@ Func ListUpdate($sFilter, $showall = False)
 	EndIf
 	dbg("ListUpdate - 2 Time:", _Timer_Diff($t))
 
-	dbg($i, $lines[0][0])
-
 	; Title
 	Local $count = _GUICtrlListView_GetItemCount($g_hListView)
 	Local $prefix = $MAIN_TITLE
+	dbg($count, $i, $lines[0][0])
 	If $count Then
 		If $i >= $lines[0][0] Then
 			WinSetTitle($g_hGUI, "", $prefix & ' - "' & $sFilter & '" ' & $count)
 		Else
-			WinSetTitle($g_hGUI, "", $prefix & ' - "' & $sFilter & '" ' & $count & ' and more...')
+			Local $notshown = $lines[0][0] - $i
+			WinSetTitle($g_hGUI, "", $prefix & ' - "' & $sFilter & '" ' & _
+				$count & '/' & $notshown & ' - press Alt+Z to show all items')
 		EndIf
 	Else
 		WinSetTitle($g_hGUI, "", $prefix)
@@ -916,9 +923,10 @@ Func GetProcessMainWindow($pid)
 		Local $handle = $wlist[$i][1]
 		If $pid <> WinGetProcess($handle) Then ContinueLoop
 		If _WinAPI_GetParent($handle) <> 0 Then ContinueLoop
-		If BitAND(_WinAPI_GetWindowLong($handle, $GWL_STYLE), $WS_VISIBLE) = 0 Then ContinueLoop
+		If BitAND(_WinAPI_GetWindowLong($handle, $GWL_STYLE), $WS_VISIBLE) = 0 Then
+			ContinueLoop
+		EndIf
 		Return $handle
 	Next
 	Return 0
 EndFunc
-
