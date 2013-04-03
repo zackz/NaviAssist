@@ -29,6 +29,7 @@ Global Const $CFGKEY_WIDTH = "WIDTH"
 Global Const $CFGKEY_HEIGHT = "HEIGHT"
 Global Const $CFGKEY_COLUMN_WIDTH = "COLUMN_WIDTH"
 Global Const $CFGKEY_NEWFF_CMD = "NEWFF_CMD" ; for firefox/firefoxsend
+Global Const $CFGKEY_NEWSCITE_CMD = "NEWSCITE_CMD" ; for scite
 Global Const $CFGKEY_DEBUG_BITS = "DEBUG_BITS"
 Global Const $CFGKEY_MAX_LIST_COUNT = "MAX_LIST_COUNT"
 Global Const $CFGKEY_NAVI_DATA = "DATA"
@@ -720,17 +721,31 @@ Func Enter_Firefox($url)
 EndFunc
 
 Func Enter_SciTE($hSciTE, $sCMD)
-	; SciTE Director Interface
-	; http://www.scintilla.org/SciTEDirector.html
-	; http://msdn.microsoft.com/en-us/library/windows/desktop/ms649011%28v=vs.85%29.aspx
 	dbg("Enter_SciTE($hSciTE, $sCMD)", $hSciTE, $sCMD)
-	Local $structCMD = DllStructCreate("Char[" & StringLen($sCMD) & "]")
-	DllStructSetData($structCMD, 1, $sCMD)
-	Local $structCOPYDATA = DllStructCreate("Ptr;DWord;Ptr")
-	DllStructSetData($structCOPYDATA, 1, 0)
-	DllStructSetData($structCOPYDATA, 2, StringLen($sCMD))
-	DllStructSetData($structCOPYDATA, 3, DllStructGetPtr($structCMD))
-	_SendMessage($hSciTE, $WM_COPYDATA, 0, DllStructGetPtr($structCOPYDATA))
+	If $hSciTE == 0 Then
+		; Open new scite
+		Local $dest = $sCMD
+		If "open:" == StringLeft($sCMD, 5) Then
+			$dest = StringMid($sCMD, 6)
+		EndIf
+		Local $scite = CFGGet($CFGKEY_NEWSCITE_CMD)
+		If FileExists($scite) Then
+			Run($scite & " " & $dest)
+		Else
+			dbg("Error, not exist file:", $scite)
+		EndIf
+	Else
+		; SciTE Director Interface
+		; http://www.scintilla.org/SciTEDirector.html
+		; http://msdn.microsoft.com/en-us/library/windows/desktop/ms649011%28v=vs.85%29.aspx
+		Local $structCMD = DllStructCreate("Char[" & StringLen($sCMD) & "]")
+		DllStructSetData($structCMD, 1, $sCMD)
+		Local $structCOPYDATA = DllStructCreate("Ptr;DWord;Ptr")
+		DllStructSetData($structCOPYDATA, 1, 0)
+		DllStructSetData($structCOPYDATA, 2, StringLen($sCMD))
+		DllStructSetData($structCOPYDATA, 3, DllStructGetPtr($structCMD))
+		_SendMessage($hSciTE, $WM_COPYDATA, 0, DllStructGetPtr($structCOPYDATA))
+	EndIf
 EndFunc
 
 Func Enter_CMD($cmd, $c2, $show)
@@ -804,7 +819,11 @@ Func Enter()
 	ElseIf $cmd = $CFGCONST_WINLIST Then
 		WinActivate($data)
 	ElseIf $splitedCMD[1] = $CFGCONST_SCITE Then
-		Enter_SciTE(Int($splitedCMD[2]), $data)
+		If $splitedCMD[0] < 2 Then
+			Enter_SciTE(0, $data)
+		Else
+			Enter_SciTE(Int($splitedCMD[2]), $data)
+		EndIf
 	ElseIf $splitedCMD[1] = $CFGCONST_CMD Then
 		Enter_CMD($cmdRight, $data, True)
 	ElseIf $splitedCMD[1] = $CFGCONST_CMDHIDE Then
