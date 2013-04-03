@@ -296,6 +296,7 @@ Func NaviActivate($index)
 	WinSetState($g_hGUI, "", @SW_SHOW)
 	WinActivate($g_hGUI)
 	ControlFocus("", "", $g_idEdit)
+	_GUICtrlEdit_SetSel($g_idEdit, 0, -1)
 	dbg("NaviActivate(), Time:", _Timer_Diff($t))
 EndFunc
 
