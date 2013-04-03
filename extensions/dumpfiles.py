@@ -37,22 +37,32 @@ def dump_files(dest, fout, file_filter=is_ignored_file, dir_filter=is_ignored_di
 
 
 def main():
+	scite_handle = None
+	fntmp = os.path.join(tempfile.gettempdir(), 'NaviData_files.txt')
+
 	if len(sys.argv) == 3:
+		# NaviAssist all files
 		dest = sys.argv[1]
 		scite_handle = sys.argv[2]
+	elif len(sys.argv) == 2:
+		# Just generate NaviData_files.txt in current directory
+		dest = sys.argv[1]
+		if os.path.isdir(dest):
+			dest = os.path.join(dest, 'dummy')
+		fntmp = 'NaviData_files.txt'
 	else:
+		# For test
 		dest = sys.argv[0]
-		scite_handle = '0'
 
 	root = os.path.dirname(os.path.abspath(dest))
 	print 'Dump files, root: "%s"' % (root)
-	fntmp = os.path.join(tempfile.gettempdir(), 'NaviData_files.txt')
 	with open(fntmp, 'w') as f:
 		lasttime = datetime.datetime.now()
 		print 'Files:', dump_files(root, f)
 		print 'Time: ', datetime.datetime.now() - lasttime
 
-	navicmd.navicmd(fntmp, 'scite:%s' % scite_handle)
+	if scite_handle:
+		navicmd.navicmd(fntmp, 'scite:%s' % scite_handle)
 
 
 if __name__ == '__main__':
