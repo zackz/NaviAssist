@@ -4,56 +4,56 @@ import datetime
 import tempfile
 import navicmd
 
+
 def is_ignored_file(fn):
-    return False
+	return False
+
 
 def is_ignored_dir(fn):
-    ignored_words = [
-        '\\.svn',
-        '\\.git',
-        ]
-    if filter(lambda x: fn.endswith(x), ignored_words):
-        return True
-    return False
+	ignored_words = [
+		'.svn',
+		'.git',
+	]
+	if not os.path.isdir(fn):
+		return False
+	return any(os.path.basename(fn) == x for x in ignored_words)
 
-def dump_files(dest, root, fout):
-    if not dest.endswith('\\'):
-        dest += '\\'
-    files = []
-    dirs = []
-    for one in os.listdir(dest):
-        fullpath = dest + one
-        if os.path.isfile(fullpath):
-            if not is_ignored_file(fullpath):
-                files.append(one)
-        elif not is_ignored_dir(fullpath):
-            dirs.append(fullpath)
 
-    count = 0
-    files.sort(key=lambda x: x.lower())
-    path_catalog = dest.replace(root, '.')
-    path_data = dest.replace('\\', '\\\\')
-    for one in files:
-        line = '%s###%s###%s\n' % (one, path_catalog + one, 'open:' + path_data + one)
-        fout.write(line)
-        count += 1
+def dump_files(dest, fout, file_filter=is_ignored_file, dir_filter=is_ignored_dir):
+	count = 0
+	for a, b, c in os.walk(dest, True):
+		for n in sorted(c):
+			fn = os.path.join(a, n)
+			if file_filter(fn):
+				continue
+			line = '%s###%s###%s\n' % (
+				fn.replace(dest, '.'), n, 'open:' + fn.replace('\\', '\\\\'))
+			fout.write(line)
+			count += 1
+		for one in filter(lambda x: dir_filter(os.path.join(a, x)), b):
+			b.remove(one)
+		b.sort()
+	return count
 
-    dirs.sort(key=lambda x: x.lower())
-    for one in dirs:
-        count += dump_files(one, root, fout)
-    return count
+
+def main():
+	if len(sys.argv) == 3:
+		dest = sys.argv[1]
+		scite_handle = sys.argv[2]
+	else:
+		dest = sys.argv[0]
+		scite_handle = '0'
+
+	root = os.path.dirname(os.path.abspath(dest))
+	print 'Dump files, root: "%s"' % (root)
+	fntmp = os.path.join(tempfile.gettempdir(), 'NaviData_files.txt')
+	with open(fntmp, 'w') as f:
+		lasttime = datetime.datetime.now()
+		print 'Files:', dump_files(root, f)
+		print 'Time: ', datetime.datetime.now() - lasttime
+
+	navicmd.navicmd(fntmp, 'scite:%s' % scite_handle)
+
 
 if __name__ == '__main__':
-    dest = sys.argv[1] if len(sys.argv) >= 2 else sys.argv[0]
-    scite_handle = sys.argv[2] if len(sys.argv) >= 3 else '0'
-
-    root = os.path.dirname(os.path.abspath(dest))
-    print 'Dump files, root: "%s"' % (root)
-    fn = os.path.join(tempfile.gettempdir(), 'NaviData_files.txt')
-    with open(fn, 'w') as f:
-        lasttime = datetime.datetime.now()
-        print 'Files:', dump_files(root, root, f)
-        print 'Time: ', datetime.datetime.now() - lasttime
-
-    navicmd.navicmd(fn, 'scite:%s' % scite_handle, navicmd.get_naviassist_path())
-
+	main()
