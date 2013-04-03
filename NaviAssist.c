@@ -172,7 +172,10 @@ DWORD NAVIAPI UpdateList(DWORD nIndex, HWND hList,
 			nNewItem = ListView_InsertItem(hList, &item);
 			ListView_SetItemText(hList, nNewItem, 1, pLine->pCatalog);
 			if (--nMaxCount == 0)
+			{
+				i++;
 				break;
+			}
 		}
 	}
 	SendMessage(hList, WM_SETREDRAW, TRUE, 0);
