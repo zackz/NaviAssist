@@ -17,6 +17,13 @@ def get_package_name(src):
 	return out
 
 
+def run_e(cmd):
+	ret = os.system(cmd)
+	if ret != 0:
+		raise Exception('Error, returned value(%d) != 0' % ret)
+	return ret
+
+
 def makeexe(src):
 	print
 	print 'Deprecated! Use autoit.exe to run script instead of compiling executable file.'
@@ -36,7 +43,7 @@ def makeexe(src):
 	print 'Aut2Exe', path_aut2exe
 	print 'IN     ', src
 	print 'OUT    ', out
-	os.system('"%s" /in %s /out %s /nopack' % (path_aut2exe, src, out))
+	run_e('"%s" /in %s /out %s /nopack' % (path_aut2exe, src, out))
 	return out
 
 
@@ -48,7 +55,7 @@ def makedll():
 		print 'Compiling NaviAssist.dll ......'
 		envpath = os.getenv('path')
 		os.putenv('path', envpath + ';' + os.path.join(PATH_MINGW, 'bin'))
-		os.system('gcc -shared -o NaviAssist.dll NaviAssist.c -Wl,--kill-at')
+		run_e('gcc -shared -o NaviAssist.dll NaviAssist.c -Wl,--kill-at')
 		return 'NaviAssist.dll'
 	else:
 		print "Can't find MinGW in", PATH_MINGW
@@ -77,6 +84,7 @@ def main():
 	# Prefer to run au3 script
 	PACKAGE_EXECUTABLE_FILE = False
 
+	os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
 	if PACKAGE_EXECUTABLE_FILE:
 		fnexe = makeexe('NaviAssist.au3')
 	else:
