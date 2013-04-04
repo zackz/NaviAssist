@@ -19,6 +19,7 @@ Global Const $NAME = "NaviAssist"
 Global Const $VERSION = "0.3.0"
 Global Const $MAIN_TITLE = $NAME & " " & $VERSION
 Global Const $PATH_INI = @ScriptDir & "\" & "NaviAssist.ini"
+Global Const $PATH_INI_SAMPLE = @ScriptDir & "\" & "NaviAssist.sample.ini"
 Global Const $PATH_DLL = @ScriptDir & "\" & "NaviAssist.dll"
 Global Const $SECTION_NAME = "PROPERTIES"
 Global Const $TITLE_FIREFOX = "[CLASS:MozillaWindowClass]"
@@ -129,6 +130,11 @@ Func InitDLL()
 EndFunc
 
 Func InitCFG()
+	If Not FileExists($PATH_INI) And FileExists($PATH_INI_SAMPLE) Then
+		; Create NaviAssist.ini from NaviAssist.sample.ini
+		FileCopy($PATH_INI_SAMPLE, $PATH_INI)
+	EndIf
+
 	Local $t = _Timer_Init()
 	CFGInitData($PATH_INI, $SECTION_NAME)
 
