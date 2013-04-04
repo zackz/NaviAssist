@@ -2,17 +2,21 @@ Navigator Assist
 ================
 
 Navigator Assist is a handy tool for quickly finding and navigating stuff.
-NaviAssist is another small apps as PuTTYAssist, which wroten for myself
+NaviAssist is another small apps as PuTTYAssist, which had wroten for myself
 and friends prefer to use keyboard instead of mouse. And NaviAssist is
 inspired by [Visual Assist X](http://www.wholetomato.com/)
 
 Getting Started
 ---------------
 
-* [Download](https://github.com/zackz/NaviAssist/downloads) latest zip file.
+* Install [AutoIt(3.3.8+)](http://www.autoitscript.com/site/autoit/downloads/)
+  * Or get `AutoIt.exe` and `Include` directory. Clean and minimized, it's preferred way to
+run PuTTYAssist.
+  * Or compile excutable file using `build.py`.
+* Run NaviAssist.au3, it'll create a default configure same as NaviAssist.sample.ini.
 It includes two sample navigator:
   * **Winlist**, navigate to all top windows. (Shortcut: `ALT + F7`)
-  * **python doc**, navigate to [Python v2.7.x documentation](http://docs.python.org).
+  * **python doc**, navigate to [Python v2.7.x documentation](http://docs.python.org/2/).
 (Shortcut: `ALT + F8`)
 * Recommend to install [Python](http://python.org/download/). Some
 scripts and extensions are written in python.
@@ -59,7 +63,7 @@ WIDTH=600
 HEIGHT=300
 ```
 
-Firefox path required by command `FIREFOX` and `FIREFOXSEND` used to run a new browser.
+Firefox path is required by command `FIREFOX` and `FIREFOXSEND` used to run a new browser.
 NEWFF_CMD can be any browser supported `ALT + D` if just use command `FIREFOXSEND`
 
 ```ini
@@ -88,7 +92,7 @@ Bastion###(module)###http://docs.python.org/library/bastion.html#module-Bastion
 * `Navi[N]_HOTKEY`, a key combination for Navi[N]: `! is ALT`, `+ is SHIFT`, `^ is CTRL`,
 `# is WINKEY`, and [more...](http://www.autoitscript.com/autoit3/docs/functions/Send.htm)
 
-* `Navi[N]_CMD`, triggered operation after found items
+* `Navi[N]_CMD`, do operation after found items
 
 <table width="100%">
   <tr>
@@ -145,7 +149,7 @@ Navi2_CMD=CMDHIDE:cmd.exe /c start %s
 ; Open files use SciTE. See dumpfiles.py and dumpctags.py
 Navi3_DATA=extensions\some_file_list.txt
 Navi3_HOTKEY=!{F9}
-Navi3_CMD=SCITE:open:%s
+Navi3_CMD=SCITE
 </pre>
     </td>
   </tr>
@@ -156,7 +160,7 @@ Navi3_CMD=SCITE:open:%s
 * **navicmd.py**, a python script for dynamically calling NaviAssist
 * CHM document
   * **NaviData_python272.txt**, python272 documents point to
-[Python v2.7.2 documentation](http://docs.python.org)
+[Python v2 documentation](http://docs.python.org/2/)
   * **NaviData_python272.chm.txt**, python272 documents point to local unpacked chm data
   * **NaviData_AutoIt3.chm.txt**, autoit documents point to local unpacked chm data
 * SciTE
@@ -166,6 +170,7 @@ Navi3_CMD=SCITE:open:%s
 History
 -------
 
+* 0.3.0 A set of small changes. Update some python files. And no longer compile executable file.
 * 0.2.3 Add a filter for WINLIST, add COLUMN_WIDTH, and fix some GUI problems.
 * 0.2.2 Optimizations about parsing file and updating listview (NaviAssist.dll).
 * 0.2.1 Optimizations about command line mode and temporary navi (navicmd.py).
