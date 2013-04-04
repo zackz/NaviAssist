@@ -11,12 +11,12 @@ Getting Started
 
 * Install [AutoIt(3.3.8+)](http://www.autoitscript.com/site/autoit/downloads/)
   * Or get `AutoIt.exe` and `Include` directory. Clean and minimized, it's preferred way to
-run PuTTYAssist.
+run NaviAssist.
   * Or compile excutable file using `build.py`.
 * Run NaviAssist.au3, it'll create a default configure same as NaviAssist.sample.ini.
 It includes two sample navigator:
   * **Winlist**, navigate to all top windows. (Shortcut: `ALT + F7`)
-  * **python doc**, navigate to [Python v2.7.x documentation](http://docs.python.org/2/).
+  * **python doc**, navigate to [Python v2 documentation](http://docs.python.org/2/).
 (Shortcut: `ALT + F8`)
 * Recommend to install [Python](http://python.org/download/). Some
 scripts and extensions are written in python.
@@ -24,7 +24,7 @@ scripts and extensions are written in python.
 Samples
 -------
 
-Show all top-level windows, and bring selected window to top
+Show all top-level windows, and bring selected window to top.
 
 ```ini
 Navi1_DATA=
@@ -32,7 +32,7 @@ Navi1_HOTKEY=!{F7}
 Navi1_CMD=Winlist
 ```
 
-Show python272 keywords, and open python document with default browser
+Show python272 keywords, and open python document with default browser.
 
 ```ini
 Navi2_DATA=extensions\NaviData_python272.txt
@@ -64,7 +64,7 @@ HEIGHT=300
 ```
 
 Firefox path is required by command `FIREFOX` and `FIREFOXSEND` used to run a new browser.
-NEWFF_CMD can be any browser supported `ALT + D` if just use command `FIREFOXSEND`
+NEWFF_CMD can be any browser supported `ALT + D` if just use command `FIREFOXSEND`.
 
 ```ini
 NEWFF_CMD="C:\Program Files\Mozilla Firefox\firefox.exe"
@@ -78,7 +78,7 @@ Navi1_HOTKEY=!{F7}
 Navi1_CMD=Winlist
 ```
 
-* `Navi[N]_DATA`, a txt file has lines like `key##category##data`
+* `Navi[N]_DATA`, a txt file has lines like `key##category##data`.
 
 A sample navidata file, NaviData_python272.txt
 
@@ -92,7 +92,7 @@ Bastion###(module)###http://docs.python.org/library/bastion.html#module-Bastion
 * `Navi[N]_HOTKEY`, a key combination for Navi[N]: `! is ALT`, `+ is SHIFT`, `^ is CTRL`,
 `# is WINKEY`, and [more...](http://www.autoitscript.com/autoit3/docs/functions/Send.htm)
 
-* `Navi[N]_CMD`, do operation after found items
+* `Navi[N]_CMD`, do operation after found items.
 
 <table width="100%">
   <tr>
