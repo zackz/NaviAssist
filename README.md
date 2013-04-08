@@ -166,15 +166,3 @@ Navi3_CMD=SCITE
 * SciTE
   * **dumpfiles**, a extenstion for SciTE - dump files in current file path
   * **dumpctags**, a extenstion for SciTE - dump ctags parsed result of current file
-
-History
--------
-
-* 0.3.0 A set of small changes. Update some python files. And no longer compile executable file.
-* 0.2.3 Add a filter for WINLIST, add COLUMN_WIDTH, and fix some GUI problems.
-* 0.2.2 Optimizations about parsing file and updating listview (NaviAssist.dll).
-* 0.2.1 Optimizations about command line mode and temporary navi (navicmd.py).
-Add two extension scripts - dumpfiles and dumpctags.
-* 0.2.0 Basic functions and GUI, several command processors:
-Winlist/MozRepl/Scite. Sample ini and extensions include dumped python272
-and AutoIt CHM files.
