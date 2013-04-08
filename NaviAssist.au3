@@ -16,7 +16,7 @@
 #include <cfgmgr.au3>
 
 Global Const $NAME = "NaviAssist"
-Global Const $VERSION = "0.3.0"
+Global Const $VERSION = "0.3.1"
 Global Const $MAIN_TITLE = $NAME & " " & $VERSION
 Global Const $PATH_INI = @ScriptDir & "\" & "NaviAssist.ini"
 Global Const $PATH_INI_SAMPLE = @ScriptDir & "\" & "NaviAssist.sample.ini"
