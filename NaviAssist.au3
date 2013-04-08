@@ -915,9 +915,8 @@ Func ListUpdate($sFilter, $showall = False)
 		If $i >= $lines[0][0] Then
 			WinSetTitle($g_hGUI, "", $prefix & ' - "' & $sFilter & '" ' & $count)
 		Else
-			Local $notshown = $lines[0][0] - $i
 			WinSetTitle($g_hGUI, "", $prefix & ' - "' & $sFilter & '" ' & _
-				$count & '/' & $notshown & ' - press Alt+Z to show all items')
+				$count & '/' & $lines[0][0] & ' - press Alt+Z to show all items')
 		EndIf
 	Else
 		WinSetTitle($g_hGUI, "", $prefix)
