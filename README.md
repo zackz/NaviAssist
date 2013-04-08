@@ -13,8 +13,8 @@ Getting Started
   * Or get `AutoIt.exe` and `Include` directory. Clean and minimized, it's preferred way to
 run NaviAssist.
   * Or compile excutable file using `build.py`.
-* Run NaviAssist.au3, it'll create a default configure same as NaviAssist.sample.ini.
-It includes two sample navigator:
+* [Download](https://github.com/zackz/NaviAssist/tree/master/distribution) and run NaviAssist.au3,
+it'll create a default configure same as NaviAssist.sample.ini which includes two sample navigator:
   * **Winlist**, navigate to all top windows. (Shortcut: `ALT + F7`)
   * **python doc**, navigate to [Python v2 documentation](http://docs.python.org/2/).
 (Shortcut: `ALT + F8`)
