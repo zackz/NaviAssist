@@ -64,6 +64,7 @@ def makedll():
 
 def package(fnexe, fndll):
 	out = get_package_name('NaviAssist.au3') + '.zip'
+	out = os.path.join('distribution', out)
 	print 'Package %s ......' % out
 	with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as f:
 		if os.path.isfile(fnexe):
@@ -90,6 +91,7 @@ def main():
 	else:
 		fnexe = ''
 	fndll = makedll()
+	#~ fndll = 'NaviAssist.dll'
 	package(fnexe, fndll)
 
 
