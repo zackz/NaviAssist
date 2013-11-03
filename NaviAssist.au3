@@ -63,6 +63,7 @@ Global $g_hEdit
 Global $g_wEditProcOld
 Global $g_wListProcOld
 Global $g_wListProcHandlePtr
+Global $g_idTrayConfigure
 Global $g_idTrayQuit
 Global $g_iListMargin
 Global $g_iLastTouchTime = 0
@@ -341,13 +342,50 @@ Func HotKey_Navi()
 EndFunc
 
 Func InitTray()
+	$g_idTrayConfigure = TrayCreateItem("Show configuration file")
+	TrayItemSetOnEvent(-1, "Tray_EventHandler")
+	TrayCreateItem("")
+
 	$g_idTrayQuit = TrayCreateItem("Quit")
 	TrayItemSetOnEvent(-1, "Tray_EventHandler")
+EndFunc
+
+Func OpenTxtFile($fn)
+	; Run scite or other editor
+	Local $cmd = CFGGet($CFGKEY_NEWSCITE_CMD) & ' "' & $fn & '"'
+	Local $pid = Run($cmd)
+	dbg("OpenTxtFile(), run", $pid, $cmd)
+	If $pid = 0 Then
+		; Bad scite path, retry with notepad
+		Local $cmd = "Notepad.exe" & ' "' & $fn & '"'
+		$pid = Run($cmd)
+		dbg("OpenTxtFile(), retry", $pid, $cmd)
+	EndIf
+	Return $pid
 EndFunc
 
 Func Tray_EventHandler()
 	dbg("Tray_EventHandler()", @TRAY_ID)
 	Switch @TRAY_ID
+		Case $g_idTrayConfigure
+			; After edit configuration file any other setting changes may cause
+			; configuration writeback. Such as edit ini file then move gui dialog
+			; position.
+			Local $r = MsgBox(0x1041, "Warning!", "Must quit before saving configuration." & @LF & _
+				@LF & _
+				"OK:     Quit PuTTYAssist then edit and save configuration." & @LF & _
+				"Cancel: Just show configuration, don't edit, modification may lose.")
+
+			; Write settings back to ini before open it.
+			CFGCachedWriteBack(False)
+
+			If $r = 1 Then
+				$g_bLeaving = True
+				WinClose($g_hGUI)
+			EndIf
+			OpenTxtFile($PATH_INI)
+			TrayItemSetState($g_idTrayConfigure, $TRAY_UNCHECKED)
+
 		Case $g_idTrayQuit
 			$g_bLeaving = True
 			WinClose($g_hGUI)
