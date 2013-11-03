@@ -287,9 +287,28 @@ Func NaviSwitchData($index)
 				$n = $n + 1
 			EndIf
 		Next
-		$list[0][0] = $n - 1
-		; Sort by catalog
-		_ArraySort($list, 0, 1, $list[0][0], 1)
+		$n = $n - 1
+		$list[0][0] = $n
+		; Sort by class name then window name
+		; It's case insensitive compare with '<' and '>'
+		; _ArraySwap is just swap, see Array.au3
+		For $i = 1 To $n
+			For $j = $i + 1 To $n - 1
+				If $list[$i][1] = $list[$j][1] Then
+					If $list[$i][0] > $list[$j][0] Then
+						_ArraySwap($list[$i][0], $list[$j][0])
+						_ArraySwap($list[$i][1], $list[$j][1])
+						_ArraySwap($list[$i][2], $list[$j][2])
+					EndIf
+				Else
+					If $list[$i][1] > $list[$j][1] Then
+						_ArraySwap($list[$i][0], $list[$j][0])
+						_ArraySwap($list[$i][1], $list[$j][1])
+						_ArraySwap($list[$i][2], $list[$j][2])
+					EndIf
+				EndIf
+			Next
+		Next
 		$g_NaviData[$g_NaviCurrent] = $list
 	EndIf
 EndFunc
