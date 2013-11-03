@@ -415,6 +415,7 @@ Func MainDlg()
 	_GUICtrlListView_SetTextColor($g_hListView, $CLR_BLACK)
 	_GUICtrlListView_SetTextBkColor($g_hListView, $CLR_MONEYGREEN)
 	_GUICtrlListView_SetOutlineColor($g_hListView, $CLR_BLACK)
+	_GUICtrlListView_AddColumn($g_hListView, "")
 	_GUICtrlListView_AddColumn($g_hListView, "key")
 	_GUICtrlListView_AddColumn($g_hListView, "category")
 	Local $posGUI = WinGetPos($g_hGUI)
@@ -516,10 +517,11 @@ Func AdjustListColumn()
 	; List control hadn't updated yet when WM_SIZE sent, then WinGetClientSize
 	; returned old size of list control. So calculate width of list by width
 	; of main dialog.
-	Local $len = CFGGet($CFGKEY_WIDTH) - $g_iListMargin - 23
+	Local $len = CFGGet($CFGKEY_WIDTH) - $g_iListMargin - 23 - 20
 	Local $percentage = CFGGetInt($CFGKEY_COLUMN_WIDTH)
-	_GUICtrlListView_SetColumnWidth($g_hListView, 0, $len * $percentage / 100)
-	_GUICtrlListView_SetColumnWidth($g_hListView, 1, $len * (100 - $percentage) / 100)
+	_GUICtrlListView_SetColumnWidth($g_hListView, 0, 20)
+	_GUICtrlListView_SetColumnWidth($g_hListView, 1, $len * $percentage / 100)
+	_GUICtrlListView_SetColumnWidth($g_hListView, 2, $len * (100 - $percentage) / 100)
 EndFunc
 
 Func WM_SIZE($hWndGUI, $MsgID, $wParam, $lParam)
@@ -855,8 +857,8 @@ Func Enter()
 	Else
 		Local $lines = $g_NaviData[$g_NaviCurrent]
 		Local $iLine = -1
-		Local $c0 = _GUICtrlListView_GetItemText($g_hListView, $index, 0)
-		Local $c1 = _GUICtrlListView_GetItemText($g_hListView, $index, 1)
+		Local $c0 = _GUICtrlListView_GetItemText($g_hListView, $index, 1)
+		Local $c1 = _GUICtrlListView_GetItemText($g_hListView, $index, 2)
 		For $i = 1 To $lines[0][0]
 			If $c0 == $lines[$i][0] And $c1 == $lines[$i][1] Then
 				$iLine = $i
@@ -953,14 +955,19 @@ Func ListUpdate($sFilter, $showall = False)
 		_GUICtrlListView_BeginUpdate($g_hListView)
 		_GUICtrlListView_DeleteAllItems($g_hListView)
 		Local $more = False
-		Local $aItems[$maxcount][2]
+		Local $aItems[$maxcount][3]
 		Local $aItemsParam[$maxcount]
 		Local $index = 0
 		For $i = 1 To $lines[0][0]
 			If Not $sFilter Or StringInStr($lines[$i][0], $sFilter, 2) Or _
 					StringInStr($lines[$i][1], $sFilter, 2) Then
-				$aItems[$index][0] = $lines[$i][0]
-				$aItems[$index][1] = $lines[$i][1]
+				If $index < 9 Then
+					$aItems[$index][0] = $index + 1
+				Else
+					$aItems[$index][0] = ''
+				EndIf
+				$aItems[$index][1] = $lines[$i][0]
+				$aItems[$index][2] = $lines[$i][1]
 				$aItemsParam[$index] = $i
 				$index = $index + 1
 				If $index >= $maxcount Then
@@ -970,7 +977,7 @@ Func ListUpdate($sFilter, $showall = False)
 			EndIf
 		Next
 		If $index > 0 Then
-			ReDim $aItems[$index][2]
+			ReDim $aItems[$index][3]
 			_GUICtrlListView_AddArray($g_hListView, $aItems)
 		EndIf
 		ListSelectItem(0)

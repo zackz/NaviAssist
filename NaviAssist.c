@@ -146,7 +146,7 @@ DWORD NAVIAPI UpdateList(DWORD nIndex, HWND hList,
 	char * p1;
 	char * p2;
 	int i;
-	int nNewItem;
+	int nItem = 0;
 	for (i = 0; i < g_NaviData[nIndex].nLinesCount; i++)
 	{
 		const LINEDATA * pLine = g_NaviData[nIndex].pLines + i;
@@ -164,13 +164,17 @@ DWORD NAVIAPI UpdateList(DWORD nIndex, HWND hList,
 		strlwr(p2);
 		if (bufFilter[0] == 0 || strstr(p1, bufFilter) || strstr(p2, bufFilter))
 		{
+			char tmp[] = "*";
 			item.mask = LVIF_TEXT | LVIF_PARAM;
 			item.iItem = i;
 			item.iSubItem = 0;
-			item.pszText = pLine->pKey;
+			tmp[0] = (nItem < 9) ? ('0' + nItem + 1) : 0;
+			item.pszText = tmp;
 			item.lParam = i;
-			nNewItem = ListView_InsertItem(hList, &item);
-			ListView_SetItemText(hList, nNewItem, 1, pLine->pCatalog);
+			ListView_InsertItem(hList, &item);
+			ListView_SetItemText(hList, nItem, 1, pLine->pKey);
+			ListView_SetItemText(hList, nItem, 2, pLine->pCatalog);
+			nItem++;
 			if (--nMaxCount == 0)
 			{
 				i++;
