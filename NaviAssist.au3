@@ -765,7 +765,17 @@ Func Enter_Firefox($url)
 	; https://github.com/bard/mozrepl/wiki
 	; https://developer.mozilla.org/en/XUL/Method/loadURI
 	dbg("Enter_Firefox($url)", $url)
-	Local $cmd = 'gBrowser.loadURI("' & $url & '")'
+	Local $fmt = _
+		"var numTabs = gBrowser.tabContainer.childNodes.length;" & @CRLF & _
+		"if (numTabs <= 5) {" & @CRLF & _
+		"	gBrowser.loadOneTab(""{url}"", {inBackground: false, relatedToCurrent: false});" & @CRLF & _
+		"} else {" & @CRLF & _
+		"	var currentTab = gBrowser.tabContainer.childNodes[numTabs - 1];" & @CRLF & _
+		"	var currentBrowser = gBrowser.getBrowserForTab(currentTab);" & @CRLF & _
+		"	currentBrowser.loadURI(""{url}"");" & @CRLF & _
+		"	gBrowser.selectedTab = currentTab;" & @CRLF & _
+		"}" & @CRLF
+	Local $cmd = StringReplace($fmt, "{url}", $url)
 	dbg("CMD   ", $cmd)
 	Local $socket = TCPConnect("127.0.0.1", 4242)
 	dbg("SOCKET", $socket)
