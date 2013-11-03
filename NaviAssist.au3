@@ -280,6 +280,10 @@ Func NaviSwitchData($index)
 				$list[$n][0] = $av[$i][0]
 				$list[$n][1] = _WinAPI_GetClassName($av[$i][1])
 				$list[$n][2] = $av[$i][1]
+				If $list[$n][1] == "Button" Or $list[$n][1] == "Progman" Then
+					dbg("Skipped window:", $list[$n][0], $list[$n][1], $list[$n][2])
+					ContinueLoop
+				EndIf
 				$n = $n + 1
 			EndIf
 		Next
