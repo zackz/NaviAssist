@@ -1,6 +1,13 @@
 Changes
 =======
 
+* 0.3.2
+Add a colomn to display index used in ALT+[N].
+Add script to not open too much tabs in firefox.
+Some changes for winlist.
+Add project root in dumpfiles for dumping all project files in scite.
+Hide after started.
+
 * 0.3.1
 Add distribution package to git repository.
 
