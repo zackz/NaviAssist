@@ -435,6 +435,7 @@ Func MainDlg()
 ;~ 	NaviActivate($g_NaviCurrent)
 ;~ 	ListUpdate('')
 ;~ 	GUISetState(@SW_SHOW, $g_hGUI)
+	ClearFilter()
 	Local $idTimer = _Timer_SetTimer($g_hGUI, 50, "Timer_Refresh")
 
 	dbg("Main loop start...", _Timer_Diff($t))
