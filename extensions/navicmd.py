@@ -48,6 +48,8 @@ def runcmd(cmd, input=None):
 
 def navicmd_msg(navidata, navicmd):
 	"""Send cmd message to existing NaviAssist window"""
+	if os.path.isfile(navidata):
+		navidata = os.path.abspath(navidata)
 	handle = find_naviassist()
 	if handle != 0:
 		send_copydata(handle, '%s###%s' % (navidata, navicmd))
@@ -65,5 +67,22 @@ def navicmd(navidata, navicmd, show_error=True):
 				0, str(e), 'NaviAssist - navicmd.py', 0x00000040L)
 
 
+def main():
+	import argparse
+	epilog="""Try:
+	navicmd.py "" winlist
+	navicmd.py [class:PuTTY] winlist
+	navicmd.py cmds.txt cmd
+	"""
+	parser = argparse.ArgumentParser(
+		description='Run navi command directly.',
+		epilog=epilog,
+		formatter_class=argparse.RawDescriptionHelpFormatter)
+	parser.add_argument('nd', metavar='data', help='NaviAssist DATA')
+	parser.add_argument('nc', metavar='cmd', help='NaviAssist CMD')
+	parsed = parser.parse_args()
+	navicmd(parsed.nd or '', parsed.nc)
+
+
 if __name__ == '__main__':
-	navicmd('', 'winlist')
+	main()
