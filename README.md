@@ -63,6 +63,12 @@ WIDTH=600
 HEIGHT=300
 ```
 
+Width of first colomn in percentage
+
+```ini
+COLUMN_WIDTH=62
+```
+
 Firefox path is required by command `FIREFOX` and `FIREFOXSEND` used to run a new browser.
 NEWFF_CMD can be any browser supported `ALT + D` if just use command `FIREFOXSEND`.
 
@@ -70,7 +76,15 @@ NEWFF_CMD can be any browser supported `ALT + D` if just use command `FIREFOXSEN
 NEWFF_CMD="C:\Program Files\Mozilla Firefox\firefox.exe"
 ```
 
-Navigator key starts with `Navi[N]_` (1 <= N < 100)
+SciTE path is required by command `SCITE`.
+
+```ini
+NEWSCITE_CMD=C:\wscite\SciTE.exe
+```
+
+### Navigator data
+
+Navigator data starts with `Navi[N]_` (1 <= N < 100)
 
 ```ini
 Navi1_DATA=
