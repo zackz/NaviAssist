@@ -713,7 +713,8 @@ EndFunc
 
 Func NewFirefox()
 	Local $var = WinList($TITLE_FIREFOX)
-	Run(CFGGet($CFGKEY_NEWFF_CMD), "", @SW_HIDE)
+;~ 	Run(CFGGet($CFGKEY_NEWFF_CMD), "", @SW_HIDE)
+	Run(CFGGet($CFGKEY_NEWFF_CMD), "", @SW_SHOW)  ; Firefox 26.0
 	For $i = 1 To 50
 		Local $var2 = WinList($TITLE_FIREFOX)
 		If $var[0][0] < $var2[0][0] Then ExitLoop
@@ -840,6 +841,8 @@ Func Enter_CMD($cmd, $c2, $show)
 EndFunc
 
 Func Enter()
+	WinSetState($g_hGUI, "", @SW_HIDE)
+
 	Local $index = _GUICtrlListView_GetNextItem($g_hListView)
 	If $index < 0 Then Return
 	Local $key, $catalog, $data
@@ -915,9 +918,6 @@ Func Enter()
 	If $g_bAutoQuit Then
 		$g_bLeaving = True
 		WinClose($g_hGUI)
-	Else
-		; Auto hide
-		WinSetState($g_hGUI, "", @SW_HIDE)
 	EndIf
 EndFunc
 
