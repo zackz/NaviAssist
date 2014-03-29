@@ -27,16 +27,16 @@ Samples
 Show all top-level windows, and bring selected window to top.
 
 ```ini
-Navi1_DATA=
 Navi1_HOTKEY=!{F7}
+Navi1_DATA=
 Navi1_CMD=Winlist
 ```
 
 Show python272 keywords, and open python document with default browser.
 
 ```ini
-Navi2_DATA=extensions\NaviData_python272.txt
 Navi2_HOTKEY=!{F8}
+Navi2_DATA=extensions\NaviData_python272.txt
 Navi2_CMD=CMDHIDE:cmd.exe /c start %s
 ```
 
@@ -44,8 +44,8 @@ Same as previous one, but use recommended way to open url. (Firefox and MozRepl
 are required)
 
 ```ini
-Navi5_DATA=extensions\NaviData_python272.chm.txt
 Navi5_HOTKEY=!{F2}
+Navi5_DATA=extensions\NaviData_python272.chm.txt
 Navi5_CMD=FIREFOX
 ```
 
@@ -87,8 +87,8 @@ NEWSCITE_CMD=C:\wscite\SciTE.exe
 Navigator data starts with `Navi[N]_` (1 <= N < 100)
 
 ```ini
-Navi1_DATA=
 Navi1_HOTKEY=!{F7}
+Navi1_DATA=
 Navi1_CMD=Winlist
 ```
 
@@ -138,8 +138,8 @@ notepad##editor##C:\Windows\System32\notepad.exe
 ie##browser##C:\Program Files (x86)\Internet Explorer\iexplore.exe
 firefox##browser##C:\Program Files\Mozilla Firefox\firefox.exe
 ; A shortcut manager
-Navi1_DATA=NaviData.txt
 Navi1_HOTKEY=!{F7}
+Navi1_DATA=NaviData.txt
 Navi1_CMD=CMD:%s
 </pre>
     </td>
@@ -149,8 +149,8 @@ Navi1_CMD=CMD:%s
     <td>Same as CMD except hiding windows.
 <pre>
 ; Another way to open url
-Navi2_DATA=extensions\NaviData_python272.txt
 Navi2_HOTKEY=!{F8}
+Navi2_DATA=extensions\NaviData_python272.txt
 Navi2_CMD=CMDHIDE:cmd.exe /c start %s
 </pre>
     </td>
@@ -161,8 +161,8 @@ Navi2_CMD=CMDHIDE:cmd.exe /c start %s
     to send command to SciTE
 <pre>
 ; Open files use SciTE. See dumpfiles.py and dumpctags.py
-Navi3_DATA=extensions\some_file_list.txt
 Navi3_HOTKEY=!{F9}
+Navi3_DATA=extensions\some_file_list.txt
 Navi3_CMD=SCITE
 </pre>
     </td>
