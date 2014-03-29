@@ -16,7 +16,7 @@
 #include <cfgmgr.au3>
 
 Global Const $NAME = "NaviAssist"
-Global Const $VERSION = "0.3.2"
+Global Const $VERSION = "0.3.3"
 Global Const $MAIN_TITLE = $NAME & " " & $VERSION
 Global Const $PATH_INI = @ScriptDir & "\" & "NaviAssist.ini"
 Global Const $PATH_INI_SAMPLE = @ScriptDir & "\" & "NaviAssist.sample.ini"
@@ -174,15 +174,18 @@ Func InitCFG()
 		$g_bCommandLine = True
 		dbg("Command line", $CmdLine[0], $CmdLineRaw)
 	Else
-		dbg("Unknown command line", $CmdLine[0], $CmdLineRaw)
+		dbg("Command line", $CmdLine[0], $CmdLineRaw)
 		$g_bCommandLine = False
-	EndIf
-	If Not $g_bCommandLine Then
-		; Load navis defined in cfg
+		; Load Navi[N] defined in cfg
 		For $i = 1 To $NAVI_MAX
 			If Not IsNaviKeyExist($i) Then ContinueLoop
 			HotKeySet(GetNaviValue($i, $CFGKEY_NAVI_HOTKEY), "HotKey_Navi")
 			$g_NaviCurrent = $i
+		Next
+		; Load NaviDirect[N] defined in cfg
+		For $i = 1 To $NAVI_MAX
+			If Not IsNaviDirectKeyExist($i) Then ContinueLoop
+			HotKeySet(GetNaviDirectValue($i, $CFGKEY_NAVI_HOTKEY), "HotKey_Navi")
 		Next
 	EndIf
 	dbg("InitCFG - 2 Time:", _Timer_Diff($t))
@@ -209,6 +212,30 @@ EndFunc
 Func IsNaviKeyExist($index)
 	If $index = $NAVI_MAX Then Return Not Not $g_NaviTmp_CMD
 	Local $value = GetNaviValue($index, $CFGKEY_NAVI_HOTKEY)
+	Return Not Not $value
+EndFunc
+
+Func GetNaviDirectKey($index, $key)
+	Return "NaviDirect" & $index & "_" & $key
+EndFunc
+
+Func GetNaviDirectValue($index, $key)
+	If $index = $NAVI_MAX Then
+		If $key = $CFGKEY_NAVI_DATA Then
+			Return $g_NaviTmp_Data
+		ElseIf $key = $CFGKEY_NAVI_HOTKEY Then
+			Return ""
+		ElseIf $key = $CFGKEY_NAVI_CMD Then
+			Return $g_NaviTmp_CMD
+		EndIf
+	Else
+		Return CFGGet(GetNaviDirectKey($index, $key))
+	EndIf
+EndFunc
+
+Func IsNaviDirectKeyExist($index)
+	If $index = $NAVI_MAX Then Return Not Not $g_NaviTmp_CMD
+	Local $value = GetNaviDirectValue($index, $CFGKEY_NAVI_HOTKEY)
 	Return Not Not $value
 EndFunc
 
@@ -331,14 +358,22 @@ Func NaviActivate($index)
 EndFunc
 
 Func HotKey_Navi()
-	Local $new = 1
+	; Navi
 	For $i = 1 To $g_NaviData[0]
 		If @HotKeyPressed == GetNaviValue($i, $CFGKEY_NAVI_HOTKEY) Then
-			$new = $i
-			ExitLoop
+			NaviActivate($i)
+			Return
 		EndIf
 	Next
-	NaviActivate($new)
+	; NaviDirect
+	For $i = 1 To $NAVI_MAX
+		If Not IsNaviDirectKeyExist($i) Then ContinueLoop
+		If @HotKeyPressed == GetNaviDirectValue($i, $CFGKEY_NAVI_HOTKEY) Then
+			RunCMD(GetNaviDirectValue($i, $CFGKEY_NAVI_CMD), _
+				GetNaviDirectValue($i, $CFGKEY_NAVI_DATA))
+			Return
+		EndIf
+	Next
 EndFunc
 
 Func InitTray()
@@ -840,6 +875,45 @@ Func Enter_CMD($cmd, $c2, $show)
 	EndIf
 EndFunc
 
+Func RunCMD($cmd, $data)
+	Local $splitedCMD = StringSplit($cmd, ":")
+	Local $cmdRight = $cmd
+	If $splitedCMD[0] > 1 Then
+		$cmdRight = StringMid($cmd, StringLen($splitedCMD[1]) + 2)
+	EndIf
+	dbg("Enter() splited:", $splitedCMD[0], "Right:", $cmdRight)
+	If $cmd = $CFGCONST_FIREFOX Or $cmd = $CFGCONST_FIREFOXSEND Then
+		; Get actived browser window
+		If Not $g_hOwnedFF Or Not WinExists($g_hOwnedFF) Then
+			$g_hOwnedFF = NewFirefox()
+			dbg("Got new FF handle", $g_hOwnedFF)
+		Else
+			WinActivate($g_hOwnedFF)
+		EndIf
+		; Open url with firefox
+		Local $url = Enter_GetURL($data)
+		If $cmd = $CFGCONST_FIREFOX Then
+			Enter_Firefox($url)
+		Else
+			Enter_Firefox_send($url)
+		EndIf
+	ElseIf $cmd = $CFGCONST_WINLIST Then
+		WinActivate($data)
+	ElseIf $splitedCMD[1] = $CFGCONST_SCITE Then
+		If $splitedCMD[0] < 2 Then
+			Enter_SciTE(0, $data)
+		Else
+			Enter_SciTE(Int($splitedCMD[2]), $data)
+		EndIf
+	ElseIf $splitedCMD[1] = $CFGCONST_CMD Then
+		Enter_CMD($cmdRight, $data, True)
+	ElseIf $splitedCMD[1] = $CFGCONST_CMDHIDE Then
+		Enter_CMD($cmdRight, $data, False)
+	Else
+		dbg("Unknown CMD!")
+	EndIf
+EndFunc
+
 Func Enter()
 	WinSetState($g_hGUI, "", @SW_HIDE)
 
@@ -879,42 +953,8 @@ Func Enter()
 	Local $cmd = GetNaviValue($g_NaviCurrent, $CFGKEY_NAVI_CMD)
 	dbg("Enter() Data:", $key, $catalog, $data)
 	dbg("Enter() $cmd:", $cmd)
-	Local $splitedCMD = StringSplit($cmd, ":")
-	Local $cmdRight = $cmd
-	If $splitedCMD[0] > 1 Then
-		$cmdRight = StringMid($cmd, StringLen($splitedCMD[1]) + 2)
-	EndIf
-	dbg("Enter() splited:", $splitedCMD[0], "Right:", $cmdRight)
-	If $cmd = $CFGCONST_FIREFOX Or $cmd = $CFGCONST_FIREFOXSEND Then
-		; Get actived browser window
-		If Not $g_hOwnedFF Or Not WinExists($g_hOwnedFF) Then
-			$g_hOwnedFF = NewFirefox()
-			dbg("Got new FF handle", $g_hOwnedFF)
-		Else
-			WinActivate($g_hOwnedFF)
-		EndIf
-		; Open url with firefox
-		Local $url = Enter_GetURL($data)
-		If $cmd = $CFGCONST_FIREFOX Then
-			Enter_Firefox($url)
-		Else
-			Enter_Firefox_send($url)
-		EndIf
-	ElseIf $cmd = $CFGCONST_WINLIST Then
-		WinActivate($data)
-	ElseIf $splitedCMD[1] = $CFGCONST_SCITE Then
-		If $splitedCMD[0] < 2 Then
-			Enter_SciTE(0, $data)
-		Else
-			Enter_SciTE(Int($splitedCMD[2]), $data)
-		EndIf
-	ElseIf $splitedCMD[1] = $CFGCONST_CMD Then
-		Enter_CMD($cmdRight, $data, True)
-	ElseIf $splitedCMD[1] = $CFGCONST_CMDHIDE Then
-		Enter_CMD($cmdRight, $data, False)
-	Else
-		dbg("Unknown CMD!")
-	EndIf
+	RunCMD($cmd, $data)
+
 	If $g_bAutoQuit Then
 		$g_bLeaving = True
 		WinClose($g_hGUI)
