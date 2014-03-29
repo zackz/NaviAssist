@@ -13,8 +13,8 @@ Getting Started
   * Or get `AutoIt.exe` and `Include` directory. Clean and minimized, it's preferred way to
 run NaviAssist.
   * Or compile excutable file using `build.py`.
-* [Download](https://github.com/zackz/NaviAssist/tree/master/distribution) and run NaviAssist.au3,
-it'll create a default configure same as NaviAssist.sample.ini which includes two sample navigator:
+* [Download](https://github.com/zackz/NaviAssist/tree/master/distribution) and run `NaviAssist.au3`.
+It'll create a default configure file same as `NaviAssist.sample.ini` which includes two sample navigator:
   * **Winlist**, navigate to all top windows. (Shortcut: `ALT + F7`)
   * **python doc**, navigate to [Python v2 documentation](http://docs.python.org/2/).
 (Shortcut: `ALT + F8`)
@@ -70,7 +70,7 @@ COLUMN_WIDTH=62
 ```
 
 Firefox path is required by command `FIREFOX` and `FIREFOXSEND` used to run a new browser.
-NEWFF_CMD can be any browser supported `ALT + D` if just use command `FIREFOXSEND`.
+`NEWFF_CMD` can be any browser supported `ALT + D` if just use command `FIREFOXSEND`.
 
 ```ini
 NEWFF_CMD="C:\Program Files\Mozilla Firefox\firefox.exe"
@@ -112,6 +112,7 @@ Bastion###(module)###http://docs.python.org/library/bastion.html#module-Bastion
   <tr>
     <th>Navi[N]_CMD</th><th>Description</th>
   </tr>
+  
   <tr>
     <td>WINLIST</td>
     <td>A demo one. Show all top-level windows, and all data is automatically generated.<br>
@@ -120,18 +121,22 @@ For example use "Navi1_DATA=[CLASS:PuTTY]" to search all PuTTY windows.
 <a href="http://www.autoitscript.com/autoit3/docs/intro/windowsadvanced.htm">More info about it.</a>
     </td>
   </tr>
+  
   <tr>
     <td>FIREFOX</td>
     <td>Recommended url opener. Require Firefox and
     <a href="https://github.com/bard/mozrepl/wiki/">MozRepl</a> extension.</td>
   </tr>
+  
   <tr>
     <td>FIREFOXSEND</td>
     <td>Send key sequence to firefox. Not only for firefox.</td>
   </tr>
+  
   <tr>
     <td>CMD</td>
-    <td>Run command (replace "%s" with "data")
+    <td>Run command (replace "%s" with "data"). 
+<a href="http://www.autoitscript.com/autoit3/docs/functions/Run.htm">More info about it.</a>
 <pre>
 ; NavaData.txt
 notepad##editor##C:\Windows\System32\notepad.exe
@@ -144,6 +149,7 @@ Navi1_CMD=CMD:%s
 </pre>
     </td>
   </tr>
+  
   <tr>
     <td>CMDHIDE</td>
     <td>Same as CMD except hiding windows.
@@ -155,6 +161,7 @@ Navi2_CMD=CMDHIDE:cmd.exe /c start %s
 </pre>
     </td>
   </tr>
+  
   <tr>
     <td>SCITE</td>
     <td>Use <a href="http://www.scintilla.org/SciTEDirector.html">SciTE director interface</a>
@@ -169,7 +176,27 @@ Navi3_CMD=SCITE
   </tr>
 </table>
 
-### Extenstions
+### Run Navi command directly
+
+Use this shortcut to run Navi command directly. In this mode no NaviAssist window will show up.
+Difference with `Navi[N]` is that `NaviDirect[N]_DATA` is the parameter for `NaviDirect[N]_CMD`.
+
+```ini
+NaviDirect1_HOTKEY=!{F10}
+NaviDirect1_DATA=https://www.google.com
+NaviDirect1_CMD=Firefox
+
+NaviDirect2_HOTKEY=!{F11}
+NaviDirect2_DATA=notepad NaviAssist.ini
+NaviDirect2_CMD=CMD:%s
+
+NaviDirect3_HOTKEY=!{F12}
+NaviDirect3_DATA=
+NaviDirect3_CMD=CMD:cmd.exe /k ipconfig
+```
+
+Extenstions
+-----------
 
 * **navicmd.py**, a python script for dynamically calling NaviAssist
 * CHM document
