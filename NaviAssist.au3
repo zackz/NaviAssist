@@ -321,7 +321,7 @@ Func NaviSwitchData($index)
 		; It's case insensitive compare with '<' and '>'
 		; _ArraySwap is just swap, see Array.au3
 		For $i = 1 To $n
-			For $j = $i + 1 To $n - 1
+			For $j = $i + 1 To $n + 1
 				If $list[$i][1] = $list[$j][1] Then
 					If $list[$i][0] > $list[$j][0] Then
 						_ArraySwap($list[$i][0], $list[$j][0])
@@ -468,7 +468,7 @@ Func MainDlg()
 	WinMove($g_hGUI, "", Default, Default, CFGGetInt($CFGKEY_WIDTH), CFGGet($CFGKEY_HEIGHT))
 	AdjustListColumn()
 ;~ 	NaviActivate($g_NaviCurrent)
-;~ 	ListUpdate('')
+;~ 	ListUpdate("")
 ;~ 	GUISetState(@SW_SHOW, $g_hGUI)
 	ClearFilter()
 	Local $idTimer = _Timer_SetTimer($g_hGUI, 50, "Timer_Refresh")
@@ -973,6 +973,26 @@ Func Timer_Refresh($hWnd, $Msg, $iIDTimer, $dwTime)
 	CFGCachedWriteBack()
 EndFunc
 
+Func SplitBySpace($str)
+	Local $ret = StringSplit($str, " ", 3)
+	For $i = UBound($ret) - 1 To 0 Step -1
+		If $ret[$i] == "" Then
+			_ArrayDelete($ret, $i)
+		EndIf
+	Next
+	Return $ret
+EndFunc
+
+Func IsMatched($str, $filters)
+	; Match all filters
+	For $i = 0 To UBound($filters) - 1
+		If Not StringInStr($str, $filters[$i], 2) Then
+			Return False
+		EndIf
+	Next
+	Return True
+EndFunc
+
 Func ListUpdate($sFilter, $showall = False)
 	Local $t = _Timer_Init()
 	Local $proc = _WinAPI_SetWindowLong($g_hListView, $GWL_WNDPROC, $g_wListProcOld)
@@ -995,17 +1015,17 @@ Func ListUpdate($sFilter, $showall = False)
 	Else
 		_GUICtrlListView_BeginUpdate($g_hListView)
 		_GUICtrlListView_DeleteAllItems($g_hListView)
-		Local $more = False
 		Local $aItems[$maxcount][3]
 		Local $aItemsParam[$maxcount]
 		Local $index = 0
+		Local $more = False
+		Local $filters = SplitBySpace($sFilter)
 		For $i = 1 To $lines[0][0]
-			If Not $sFilter Or StringInStr($lines[$i][0], $sFilter, 2) Or _
-					StringInStr($lines[$i][1], $sFilter, 2) Then
+			If Not $sFilter Or IsMatched($lines[$i][0] & " " & $lines[$i][1], $filters) Then
 				If $index < 9 Then
 					$aItems[$index][0] = $index + 1
 				Else
-					$aItems[$index][0] = ''
+					$aItems[$index][0] = ""
 				EndIf
 				$aItems[$index][1] = $lines[$i][0]
 				$aItems[$index][2] = $lines[$i][1]
@@ -1035,7 +1055,7 @@ Func ListUpdate($sFilter, $showall = False)
 			WinSetTitle($g_hGUI, "", $prefix & ' - "' & $sFilter & '" ' & $count)
 		Else
 			WinSetTitle($g_hGUI, "", $prefix & ' - "' & $sFilter & '" ' & _
-				$count & '/' & $lines[0][0] & ' - press Alt+Z to show all items')
+				$count & "/" & $lines[0][0] & " - press Alt+Z to show all items")
 		EndIf
 	Else
 		WinSetTitle($g_hGUI, "", $prefix)

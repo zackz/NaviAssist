@@ -68,41 +68,25 @@ void ClearNaviData(DWORD nIndex)
 	g_NaviData[nIndex].nLinesCount = 0;
 }
 
-DWORD NAVIAPI ReadData(DWORD nIndex, LPCSTR fn)
+void BuildNaviData(NAVIDATA * pNaviData, char * pData, const char * szSep)
 {
-	FILE * f;
-	struct _stat st;
-	int n;
-
-	// Read all file data into g_NaviData[nIndex].pData
-	ClearNaviData(nIndex);
-	f = fopen(fn, "r");
-	if (!f || _stat(fn, &st) != 0)
-	{
-		dbg("Error file? %s, %d", fn, f);
-		return 0;
-	}
-	g_NaviData[nIndex].pData = malloc(st.st_size + 1);
-	n = fread(g_NaviData[nIndex].pData, 1, st.st_size, f);
-	g_NaviData[nIndex].pData[n] = 0;
-	fclose(f);
+	pNaviData->pData = pData;
 
 	// Count lines
-	char * pStart;
-	char * pNext;
-	n = 0;
-	for (pStart = g_NaviData[nIndex].pData; *pStart; pStart++)
+	char * pStart = NULL;
+	char * pNext = NULL;
+	int n = 1;
+	for (pStart = pNaviData->pData; *pStart; pStart++)
 		if (*pStart == '\n')
 			n++;
 
 	// Split data and make lines
-	const char szSep[] = "###";
 	const int nSep = strlen(szSep);
-	char * p1;
-	char * p2;
-	g_NaviData[nIndex].pLines = (LINEDATA *)malloc(n * sizeof(LINEDATA));
+	char * p1 = NULL;
+	char * p2 = NULL;
+	pNaviData->pLines = (LINEDATA *)malloc(n * sizeof(LINEDATA));
 	n = 0;
-	pStart = g_NaviData[nIndex].pData;
+	pStart = pNaviData->pData;
 	for (; pStart; pStart = pNext ? pNext + 1 : NULL)
 	{
 		pNext = strchr(pStart, '\n');
@@ -121,13 +105,47 @@ DWORD NAVIAPI ReadData(DWORD nIndex, LPCSTR fn)
 		}
 		memset(p1, 0, nSep);
 		memset(p2, 0, nSep);
-		(g_NaviData[nIndex].pLines + n)->pKey = pStart;
-		(g_NaviData[nIndex].pLines + n)->pCatalog = p1 + nSep;
-		(g_NaviData[nIndex].pLines + n)->pData = p2 + nSep;
+		(pNaviData->pLines + n)->pKey = pStart;
+		(pNaviData->pLines + n)->pCatalog = p1 + nSep;
+		(pNaviData->pLines + n)->pData = p2 + nSep;
 		n++;
 	}
-	g_NaviData[nIndex].nLinesCount = n;
-	return n;
+	pNaviData->nLinesCount = n;
+}
+
+DWORD NAVIAPI ReadData(DWORD nIndex, LPCSTR fn)
+{
+	FILE * f;
+	struct _stat st;
+	char * buffer = NULL;
+	int n;
+
+	ClearNaviData(nIndex);
+	f = fopen(fn, "r");
+	if (!f || _stat(fn, &st) != 0)
+	{
+		dbg("Error file? %s, %d", fn, f);
+		return 0;
+	}
+	buffer = malloc(st.st_size + 1);
+	n = fread(buffer, 1, st.st_size, f);
+	buffer[n] = 0;
+	fclose(f);
+
+	BuildNaviData(g_NaviData + nIndex, buffer, "###");
+	return g_NaviData[nIndex].nLinesCount;
+}
+
+BOOL IsMatched(LPCSTR pszFilter, char * filters[], int fcnt)
+{
+	// Match all filters
+	int i;
+	for (i = 0; i < fcnt; i++)
+	{
+		if (!strstr(pszFilter, filters[i]))
+			return FALSE;
+	}
+	return TRUE;
 }
 
 DWORD NAVIAPI UpdateList(DWORD nIndex, HWND hList,
@@ -136,17 +154,30 @@ DWORD NAVIAPI UpdateList(DWORD nIndex, HWND hList,
 	SendMessage(hList, WM_SETREDRAW, FALSE, 0);
 	ListView_DeleteAllItems(hList);
 
+	// Get filters splited by " "
 	char bufFilter[200];
-	strncpy(bufFilter, pszFilter, sizeof(bufFilter) - 1);
+	char * p;
+	char * filters[sizeof(bufFilter)];  // Never greater then bufFilter's length.
+	int fcnt;
+	strncpy(bufFilter, pszFilter, sizeof(bufFilter));
 	bufFilter[sizeof(bufFilter) - 1] = 0;
 	strlwr(bufFilter);
+	for (p = bufFilter, fcnt = 0; *p; fcnt++)
+	{
+		while (*p == ' ')
+			*p++ = 0;
+		if (!*p)
+			break;
+		filters[fcnt] = p;
+		while (*p && *p != ' ')
+			*p++;
+	}
 
+	// Update list with filters
 	LVITEM item;
 	char buf[2000];
-	char * p1;
-	char * p2;
-	int i;
 	int nItem = 0;
+	int i, j;
 	for (i = 0; i < g_NaviData[nIndex].nLinesCount; i++)
 	{
 		const LINEDATA * pLine = g_NaviData[nIndex].pLines + i;
@@ -158,11 +189,13 @@ DWORD NAVIAPI UpdateList(DWORD nIndex, HWND hList,
 			continue;
 		}
 		memcpy(buf, pLine->pKey, pLine->pData - pLine->pKey);
-		p1 = buf;
-		strlwr(p1);
-		p2 = buf + (pLine->pCatalog - pLine->pKey);
-		strlwr(p2);
-		if (bufFilter[0] == 0 || strstr(p1, bufFilter) || strstr(p2, bufFilter))
+		for (j = 0; j < pLine->pData - pLine->pKey - 1; j++)
+		{
+			if (buf[j] == 0)
+				buf[j] = ' ';  // Connect c1 & c2 to one string
+		}
+		strlwr(buf);
+		if (fcnt == 0 || IsMatched(buf, filters, fcnt))
 		{
 			char tmp[] = "*";
 			item.mask = LVIF_TEXT | LVIF_PARAM;
@@ -226,4 +259,3 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 	}
 	return TRUE;
 }
-
