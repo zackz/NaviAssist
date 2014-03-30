@@ -157,7 +157,7 @@ DWORD NAVIAPI UpdateList(DWORD nIndex, HWND hList,
 	// Get filters splited by " "
 	char bufFilter[200];
 	char * p;
-	char * filters[sizeof(bufFilter)];  // Never greater then bufFilter's length.
+	char * filters[sizeof(bufFilter)];  // Never greater than bufFilter's length.
 	int fcnt;
 	strncpy(bufFilter, pszFilter, sizeof(bufFilter));
 	bufFilter[sizeof(bufFilter) - 1] = 0;
