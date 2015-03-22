@@ -775,11 +775,11 @@ Func NewFirefox()
 EndFunc
 
 Func Enter_GetURL($c2)
-	; $c2("local") --> url
 	Local $left6 = StringLeft($c2, 6)
 	If $left6 = "http:/" Or $left6 = "https:" Or $left6 = "ftp://" Or $left6 = "file:/" Then
 		Return $c2
 	Else
+		; $c2 --> file:///...path_of_navidata.../$c2
 		Local $navipath = _PathFull(GetNaviValue($g_NaviCurrent, $CFGKEY_NAVI_DATA))
 		Local $szDrive, $szDir, $szFName, $szExt
 		_PathSplit($navipath, $szDrive, $szDir, $szFName, $szExt)
@@ -891,8 +891,11 @@ Func RunCMD($cmd, $data)
 			WinActivate($g_hOwnedFF)
 		EndIf
 		; Open url with firefox
+		$data = StringStripWS($data, 3)
 		Local $url = Enter_GetURL($data)
-		If $cmd = $CFGCONST_FIREFOX Then
+		If $data = "" Then
+			; Do nothing, just bring browser window to foreground.
+		ElseIf $cmd = $CFGCONST_FIREFOX Then
 			Enter_Firefox($url)
 		Else
 			Enter_Firefox_send($url)
