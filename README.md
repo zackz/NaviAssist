@@ -193,6 +193,11 @@ NaviDirect2_CMD=CMD:%s
 NaviDirect3_HOTKEY=!{F12}
 NaviDirect3_DATA=
 NaviDirect3_CMD=CMD:cmd.exe /k ipconfig
+
+; Bring the browser window (NEWFF_CMD) to foreground.
+NaviDirect10_HOTKEY=!{F1}
+NaviDirect10_DATA=
+NaviDirect10_CMD=Firefox
 ```
 
 Extenstions
