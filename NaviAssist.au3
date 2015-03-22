@@ -777,7 +777,7 @@ EndFunc
 Func Enter_GetURL($c2)
 	; $c2("local") --> url
 	Local $left6 = StringLeft($c2, 6)
-	If $left6 = "http:/" Or $left6 = "https:" Or $left6 = "ftp://" Then
+	If $left6 = "http:/" Or $left6 = "https:" Or $left6 = "ftp://" Or $left6 = "file:/" Then
 		Return $c2
 	Else
 		Local $navipath = _PathFull(GetNaviValue($g_NaviCurrent, $CFGKEY_NAVI_DATA))
